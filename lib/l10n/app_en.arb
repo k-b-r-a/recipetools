@@ -1,10 +1,12 @@
 {
   "@@locale": "en",
   "recipes_title": "Recipes",
+  "recipe_title": "Recipe",
   "ingredients_title": "Ingredients",
   "units_title": "Units",
   "recipe_name": "Recipe Name",
   "recipe_description": "Description",
+  "recipe_description_hint": "Short description of the recipe...",
   "recipe_yield": "Default Yield",
   "recipe_yield_name": "Yield Unit (e.g. cookies)",
   "target_profit_margin": "Target Profit Margin",
@@ -18,8 +20,40 @@
   "unit_grams": "Grams",
   "unit_kilograms": "Kilograms",
   "unit_milliliters": "Milliliters",
+  "unit_liters": "Liters",
+  "unit_pieces": "Pieces",
   "unit_spoonfuls": "Spoonfuls",
+  "unit_tablespoons": "Tablespoons",
+  "unit_teaspoons": "Teaspoons",
+  "unit_cups": "Cups",
+  "unit_ounces": "Ounces",
   "step_instruction": "Instruction",
+  "step_instruction_hint": "Describe the step...",
   "save_button": "Save",
-  "delete_button": "Delete"
+  "delete_button": "Delete",
+  "config_button": "Settings",
+  "recipe_steps": "Steps",
+  "no_steps": "No steps added yet.",
+  "est_revenue": "Est. Revenue",
+  "financial_targets": "Financial Targets",
+  "no_ingredients": "No ingredients added yet.",
+  "unit_portions": "Portions",
+  "cost_per_portion": "Cost per Portion",
+  "profit_per_portion": "Profit per Portion",
+  "validation_required": "Required",
+  "profit_margin_helper": "Enter whole numbers (e.g., 35 for 35%)",
+  "assign_ingredients_tooltip": "Assign ingredients to this step",
+  "select_ingredient_recipe_title": "Select Ingredient for Recipe",
+  "assign_to_step_title": "Assign to Step {number}",
+  "@assign_to_step_title": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "mention_ingredient_title": "Mention Ingredient",
+  "add_ingredients_first_error": "Add ingredients to the recipe first",
+  "assign_step_ingredients_first_error": "Assign ingredients to the step header (+)",
+  "done_button": "Done"
 }
