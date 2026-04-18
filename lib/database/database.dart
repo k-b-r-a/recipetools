@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'tables.dart';
+import 'initialize_default_database.dart';
 
 part 'database.g.dart';
 
@@ -15,6 +16,18 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      beforeOpen: (details) async {
+        await initializeDefaultDatabase(this);
+      },
+    );
+  }
 
   // --- Unit Queries ---
   Future<List<Unit>> getAllUnits() => select(units).get();

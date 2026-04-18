@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'l10n/app_localizations.dart';
+import 'provider/database_provider.dart';
 
 void main() {
-  runApp(const RecipetoolsApp());
+  runApp(const ProviderScope(child: RecipetoolsApp()));
 }
 
 class RecipetoolsApp extends StatelessWidget {
@@ -34,30 +36,73 @@ class RecipetoolsApp extends StatelessWidget {
   }
 }
 
-class RecipeListScreen extends StatelessWidget {
+class RecipeListScreen extends ConsumerWidget {
   const RecipeListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final recipesAsync = ref.watch(recipesStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.recipes_title),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.restaurant_menu, size: 64),
-            const SizedBox(height: 16),
-            Text(
-              l10n.recipes_title,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+      body: recipesAsync.when(
+        data: (recipes) {
+          if (recipes.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.restaurant_menu,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.recipes_title, // Using title as placeholder for "No recipes"
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineMedium?.copyWith(color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: recipes.length,
+            itemBuilder: (context, index) {
+              final recipe = recipes[index];
+              return ListTile(
+                title: Text(recipe.name),
+                subtitle: Text(recipe.description ?? ''),
+                leading: CircleAvatar(
+                  backgroundColor: recipe.colour != null
+                      ? Color(
+                          int.parse(recipe.colour!.replaceFirst('#', '0xFF')),
+                        )
+                      : Theme.of(context).colorScheme.primary,
+                  child: const Icon(Icons.restaurant, color: Colors.white),
+                ),
+                onTap: () {
+                  // TODO: Navigate to recipe detail
+                },
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // TODO: Add new recipe
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
