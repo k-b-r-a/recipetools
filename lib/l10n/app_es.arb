@@ -1,14 +1,16 @@
 {
   "@@locale": "es",
   "recipes_title": "Recetas",
+  "recipe_title": "Receta",
   "ingredients_title": "Ingredientes",
   "units_title": "Unidades",
   "recipe_name": "Nombre de la Receta",
-  "recipe_description": "DescripciÃ³n",
-  "recipe_yield": "Porciones/Rendimiento",
+  "recipe_description": "Descripción",
+  "recipe_description_hint": "Breve descripción de la receta...",
+  "recipe_yield": "Rendimiento",
   "recipe_yield_name": "Unidad (ej. galletas)",
   "target_profit_margin": "Margen de Ganancia (%)",
-  "target_price_portion": "Precio por PorciÃ³n",
+  "target_price_portion": "Precio por Porción",
   "fixed_overhead": "Gastos Fijos",
   "total_cost": "Costo Total",
   "profit_per_recipe": "Ganancia por Receta",
@@ -18,8 +20,40 @@
   "unit_grams": "Gramos",
   "unit_kilograms": "Kilogramos",
   "unit_milliliters": "Mililitros",
+  "unit_liters": "Litros",
+  "unit_pieces": "Piezas",
   "unit_spoonfuls": "Cucharadas",
-  "step_instruction": "InstrucciÃ³n",
+  "unit_tablespoons": "Cucharadas",
+  "unit_teaspoons": "Cucharaditas",
+  "unit_cups": "Tazas",
+  "unit_ounces": "Onzas",
+  "step_instruction": "Instrucción",
+  "step_instruction_hint": "Describe el paso...",
   "save_button": "Guardar",
-  "delete_button": "Eliminar"
+  "delete_button": "Eliminar",
+  "config_button": "Configuración",
+  "recipe_steps": "Pasos",
+  "no_steps": "Aún no hay pasos añadidos.",
+  "est_revenue": "Ingresos Est.",
+  "financial_targets": "Objetivos Financieros",
+  "no_ingredients": "Aún no hay ingredientes.",
+  "unit_portions": "Porciones",
+  "cost_per_portion": "Costo por Porción",
+  "profit_per_portion": "Ganancia por Porción",
+  "validation_required": "Requerido",
+  "profit_margin_helper": "Ingrese números enteros (ej. 35 para 35%)",
+  "assign_ingredients_tooltip": "Asignar ingredientes a este paso",
+  "select_ingredient_recipe_title": "Seleccionar Ingrediente para la Receta",
+  "assign_to_step_title": "Asignar al Paso {number}",
+  "@assign_to_step_title": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "mention_ingredient_title": "Mencionar Ingrediente",
+  "add_ingredients_first_error": "Agrega ingredientes a la receta primero",
+  "assign_step_ingredients_first_error": "Asigna ingredientes al paso en la cabecera (+)",
+  "done_button": "Hecho"
 }

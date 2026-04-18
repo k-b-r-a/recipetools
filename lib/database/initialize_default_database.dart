@@ -26,8 +26,38 @@ Future<void> initializeDefaultDatabase(AppDatabase db) async {
         isMutable: const Value(false),
       ),
       UnitsCompanion(
+        name: const Value('unit_liters'),
+        symbol: const Value('l'),
+        isMutable: const Value(false),
+      ),
+      UnitsCompanion(
+        name: const Value('unit_pieces'),
+        symbol: const Value('pcs'),
+        isMutable: const Value(false),
+      ),
+      UnitsCompanion(
         name: const Value('unit_spoonfuls'),
         symbol: const Value('spoonfuls'),
+        isMutable: const Value(false),
+      ),
+      UnitsCompanion(
+        name: const Value('unit_tablespoons'),
+        symbol: const Value('tbsp'),
+        isMutable: const Value(false),
+      ),
+      UnitsCompanion(
+        name: const Value('unit_teaspoons'),
+        symbol: const Value('tsp'),
+        isMutable: const Value(false),
+      ),
+      UnitsCompanion(
+        name: const Value('unit_cups'),
+        symbol: const Value('cup'),
+        isMutable: const Value(false),
+      ),
+      UnitsCompanion(
+        name: const Value('unit_ounces'),
+        symbol: const Value('oz'),
         isMutable: const Value(false),
       ),
     ];

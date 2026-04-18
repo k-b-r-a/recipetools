@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'l10n/app_localizations.dart';
 import 'provider/database_provider.dart';
 
+import 'screens/add_recipe_screen.dart';
+
 void main() {
   runApp(const ProviderScope(child: RecipetoolsApp()));
 }
@@ -100,7 +102,9 @@ class RecipeListScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Add new recipe
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const AddRecipeScreen()),
+          );
         },
         child: const Icon(Icons.add),
       ),

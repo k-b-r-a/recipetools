@@ -212,6 +212,12 @@ abstract class AppLocalizations {
   /// **'Recipes'**
   String get recipes_title;
 
+  /// No description provided for @recipe_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe'**
+  String get recipe_title;
+
   /// No description provided for @ingredients_title.
   ///
   /// In en, this message translates to:
@@ -235,6 +241,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Description'**
   String get recipe_description;
+
+  /// No description provided for @recipe_description_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Short description of the recipe...'**
+  String get recipe_description_hint;
 
   /// No description provided for @recipe_yield.
   ///
@@ -314,17 +326,59 @@ abstract class AppLocalizations {
   /// **'Milliliters'**
   String get unit_milliliters;
 
+  /// No description provided for @unit_liters.
+  ///
+  /// In en, this message translates to:
+  /// **'Liters'**
+  String get unit_liters;
+
+  /// No description provided for @unit_pieces.
+  ///
+  /// In en, this message translates to:
+  /// **'Pieces'**
+  String get unit_pieces;
+
   /// No description provided for @unit_spoonfuls.
   ///
   /// In en, this message translates to:
   /// **'Spoonfuls'**
   String get unit_spoonfuls;
 
+  /// No description provided for @unit_tablespoons.
+  ///
+  /// In en, this message translates to:
+  /// **'Tablespoons'**
+  String get unit_tablespoons;
+
+  /// No description provided for @unit_teaspoons.
+  ///
+  /// In en, this message translates to:
+  /// **'Teaspoons'**
+  String get unit_teaspoons;
+
+  /// No description provided for @unit_cups.
+  ///
+  /// In en, this message translates to:
+  /// **'Cups'**
+  String get unit_cups;
+
+  /// No description provided for @unit_ounces.
+  ///
+  /// In en, this message translates to:
+  /// **'Ounces'**
+  String get unit_ounces;
+
   /// No description provided for @step_instruction.
   ///
   /// In en, this message translates to:
   /// **'Instruction'**
   String get step_instruction;
+
+  /// No description provided for @step_instruction_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the step...'**
+  String get step_instruction_hint;
 
   /// No description provided for @save_button.
   ///
@@ -337,6 +391,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get delete_button;
+
+  /// No description provided for @config_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get config_button;
+
+  /// No description provided for @recipe_steps.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get recipe_steps;
+
+  /// No description provided for @no_steps.
+  ///
+  /// In en, this message translates to:
+  /// **'No steps added yet.'**
+  String get no_steps;
+
+  /// No description provided for @est_revenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Est. Revenue'**
+  String get est_revenue;
+
+  /// No description provided for @financial_targets.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Targets'**
+  String get financial_targets;
+
+  /// No description provided for @no_ingredients.
+  ///
+  /// In en, this message translates to:
+  /// **'No ingredients added yet.'**
+  String get no_ingredients;
+
+  /// No description provided for @unit_portions.
+  ///
+  /// In en, this message translates to:
+  /// **'Portions'**
+  String get unit_portions;
+
+  /// No description provided for @cost_per_portion.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost per Portion'**
+  String get cost_per_portion;
+
+  /// No description provided for @profit_per_portion.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit per Portion'**
+  String get profit_per_portion;
+
+  /// No description provided for @validation_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get validation_required;
+
+  /// No description provided for @profit_margin_helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter whole numbers (e.g., 35 for 35%)'**
+  String get profit_margin_helper;
+
+  /// No description provided for @assign_ingredients_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign ingredients to this step'**
+  String get assign_ingredients_tooltip;
+
+  /// No description provided for @select_ingredient_recipe_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Ingredient for Recipe'**
+  String get select_ingredient_recipe_title;
+
+  /// No description provided for @assign_to_step_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to Step {number}'**
+  String assign_to_step_title(int number);
+
+  /// No description provided for @mention_ingredient_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention Ingredient'**
+  String get mention_ingredient_title;
+
+  /// No description provided for @add_ingredients_first_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Add ingredients to the recipe first'**
+  String get add_ingredients_first_error;
+
+  /// No description provided for @assign_step_ingredients_first_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign ingredients to the step header (+)'**
+  String get assign_step_ingredients_first_error;
+
+  /// No description provided for @done_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done_button;
 }
 
 class _AppLocalizationsDelegate
