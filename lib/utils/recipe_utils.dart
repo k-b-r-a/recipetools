@@ -109,6 +109,7 @@ class RecipeUtils {
 
   static Future<void> saveRecipe({
     required AppDatabase db,
+    String? recipePk,
     required String name,
     required String description,
     required String yieldText,
@@ -123,10 +124,10 @@ class RecipeUtils {
     final rawMargin = double.tryParse(profitMarginText) ?? 0.0;
     final decimalMargin = rawMargin / 100.0;
 
-    final recipePk = uuid.v4();
+    final actualRecipePk = recipePk ?? uuid.v4();
 
-    final newRecipe = RecipesCompanion.insert(
-      recipePk: drift.Value(recipePk),
+    final recipeCompanion = RecipesCompanion.insert(
+      recipePk: drift.Value(actualRecipePk),
       name: name.trim(),
       description: drift.Value(description.trim()),
       defaultYield: parsedYield,
@@ -135,20 +136,41 @@ class RecipeUtils {
       targetPricePerPortion: drift.Value(parsedPrice),
     );
 
-    await db.insertRecipe(newRecipe);
+    await db.transaction(() async {
+      // 1. Update or Insert main recipe
+      if (recipePk != null) {
+        await (db.update(db.recipes)
+              ..where((t) => t.recipePk.equals(actualRecipePk)))
+            .write(recipeCompanion);
+      } else {
+        await db.insertRecipe(recipeCompanion);
+      }
 
-    for (var ingData in ingredients) {
-      await db.into(db.recipeIngredients).insert(RecipeIngredientsCompanion.insert(
-        recipeFk: recipePk,
-        ingredientFk: ingData.ingredient.ingredientPk,
-        amountNeeded: ingData.amount,
-      ));
-    }
+      // 2. Clear and re-insert ingredients
+      await (db.delete(db.recipeIngredients)
+            ..where((t) => t.recipeFk.equals(actualRecipePk)))
+          .go();
 
-    for (int i = 0; i < steps.length; i++) {
-      final step = _mapToCompanion(recipePk, i, steps[i]);
-      await db.into(db.recipeSteps).insert(step);
-    }
+      for (var ingData in ingredients) {
+        await db.into(db.recipeIngredients).insert(
+              RecipeIngredientsCompanion.insert(
+                recipeFk: actualRecipePk,
+                ingredientFk: ingData.ingredient.ingredientPk,
+                amountNeeded: ingData.amount,
+              ),
+            );
+      }
+
+      // 3. Clear and re-insert steps
+      await (db.delete(db.recipeSteps)
+            ..where((t) => t.recipeFk.equals(actualRecipePk)))
+          .go();
+
+      for (int i = 0; i < steps.length; i++) {
+        final step = _mapToCompanion(actualRecipePk, i, steps[i]);
+        await db.into(db.recipeSteps).insert(step);
+      }
+    });
   }
 
   static RecipeStepsCompanion _mapToCompanion(String recipePk, int index, RecipeStepData step) {

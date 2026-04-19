@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'l10n/app_localizations.dart';
 import 'provider/database_provider.dart';
 
-import 'screens/add_recipe_screen.dart';
+import 'screens/recipe_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: RecipetoolsApp()));
@@ -91,7 +91,13 @@ class RecipeListScreen extends ConsumerWidget {
                   child: const Icon(Icons.restaurant, color: Colors.white),
                 ),
                 onTap: () {
-                  // TODO: Navigate to recipe detail
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => RecipeScreen(
+                        recipeId: recipe.recipePk,
+                      ),
+                    ),
+                  );
                 },
               );
             },
@@ -103,7 +109,7 @@ class RecipeListScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const AddRecipeScreen()),
+            MaterialPageRoute(builder: (context) => const RecipeScreen()),
           );
         },
         child: const Icon(Icons.add),
