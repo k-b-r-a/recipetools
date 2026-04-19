@@ -1,6 +1,7 @@
 {
   "@@locale": "en",
   "recipes_title": "Recipes",
+  "new_recipe_title": "New Recipe",
   "recipe_title": "Recipe",
   "ingredients_title": "Ingredients",
   "units_title": "Units",

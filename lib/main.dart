@@ -4,6 +4,7 @@ import 'l10n/app_localizations.dart';
 import 'provider/database_provider.dart';
 
 import 'screens/recipe_screen.dart';
+import 'screens/add_recipe_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: RecipetoolsApp()));
@@ -109,7 +110,7 @@ class RecipeListScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const RecipeScreen()),
+            MaterialPageRoute(builder: (context) => const AddRecipeScreen()),
           );
         },
         child: const Icon(Icons.add),

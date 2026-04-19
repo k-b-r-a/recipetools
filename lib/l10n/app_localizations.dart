@@ -212,6 +212,12 @@ abstract class AppLocalizations {
   /// **'Recipes'**
   String get recipes_title;
 
+  /// No description provided for @new_recipe_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New Recipe'**
+  String get new_recipe_title;
+
   /// No description provided for @recipe_title.
   ///
   /// In en, this message translates to:

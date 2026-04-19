@@ -7,8 +7,8 @@ import '../l10n/app_localizations.dart';
 import '../utils/recipe_utils.dart';
 
 class RecipeScreen extends ConsumerStatefulWidget {
-  final String? recipeId;
-  const RecipeScreen({super.key, this.recipeId});
+  final String recipeId;
+  const RecipeScreen({super.key, required this.recipeId});
 
   @override
   ConsumerState<RecipeScreen> createState() => _RecipeScreenState();
@@ -17,7 +17,7 @@ class RecipeScreen extends ConsumerStatefulWidget {
 class _RecipeScreenState extends ConsumerState<RecipeScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _showDescription = false;
+  bool _showDescription = true;
 
   // Controllers
   final _nameController = TextEditingController();
@@ -44,19 +44,14 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
     _priceController.addListener(_calculateSummary);
     _profitMarginController.addListener(_calculateSummary);
 
-    if (widget.recipeId != null) {
-      _loadRecipeData();
-    } else {
-      // Initialize with one empty step for new recipes
-      _addStep();
-    }
+    _loadRecipeData();
   }
 
   Future<void> _loadRecipeData() async {
     setState(() => _isLoading = true);
     try {
       final db = ref.read(databaseProvider);
-      final detail = await db.getRecipeDetail(widget.recipeId!);
+      final detail = await db.getRecipeDetail(widget.recipeId);
 
       _nameController.text = detail.recipe.name;
       _descriptionController.text = detail.recipe.description ?? '';
@@ -233,21 +228,10 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: widget.recipeId == null
-            ? TextField(
-                controller: _nameController,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                decoration: InputDecoration(
-                  hintText: l10n.recipe_name,
-                  border: InputBorder.none,
-                ),
-              )
-            : Text(
-                _nameController.text,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+        title: Text(
+          _nameController.text,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
@@ -413,9 +397,8 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                 children: [
                   const SizedBox(height: 16),
 
-                  // Description Toggle
-                  if (_descriptionController.text.isNotEmpty ||
-                      widget.recipeId == null)
+                  // Description
+                  if (_descriptionController.text.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -435,29 +418,18 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                           ),
                         ),
                         if (_showDescription)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest
-                                  .withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 4.0,
+                              right: 4.0,
+                              bottom: 16.0,
                             ),
-                            child: widget.recipeId == null
-                                ? _buildCustomTextField(
-                                    controller: _descriptionController,
-                                    label: "",
-                                    hint: l10n.recipe_description_hint,
-                                    maxLines: 3,
-                                  )
-                                : Text(
-                                    _descriptionController.text,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontStyle: FontStyle.italic,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
+                            child: Text(
+                              _descriptionController.text,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -534,6 +506,81 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+
+  Widget _buildCustomTextField({
+    required TextEditingController controller,
+    required String label,
+    String? hint,
+    IconData? icon,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0, bottom: 6.0),
+            child: Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        TextFormField(
+          controller: controller,
+          maxLines: maxLines,
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: icon != null ? Icon(icon, size: 20) : null,
+            filled: true,
+            fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.2,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(color: theme.colorScheme.error, width: 2),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1043,83 +1090,4 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
       },
     );
   }
-
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w900,
-        letterSpacing: 0.5,
-      ),
-    );
-  }
-
-  Widget _buildCustomTextField({
-    required TextEditingController controller,
-    required String label,
-    String? hint,
-    IconData? icon,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 4.0, bottom: 6.0),
-            child: Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: icon != null ? Icon(icon, size: 20) : null,
-            filled: true,
-            fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.2,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 2,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(color: theme.colorScheme.error, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class RoundedRectangleSection {
-  static const borderRadius15 = BorderRadius.all(Radius.circular(15));
 }

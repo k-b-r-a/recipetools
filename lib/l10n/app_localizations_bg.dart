@@ -12,6 +12,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get recipes_title => 'Recipes';
 
   @override
+  String get new_recipe_title => 'New Recipe';
+
+  @override
   String get recipe_title => 'Recipe';
 
   @override

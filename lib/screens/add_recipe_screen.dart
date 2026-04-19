@@ -15,6 +15,8 @@ class AddRecipeScreen extends ConsumerStatefulWidget {
 
 class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  bool _showDescription = true;
 
   // Controllers
   final _nameController = TextEditingController();
@@ -23,6 +25,9 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
   final _yieldNameController = TextEditingController();
   final _profitMarginController = TextEditingController(text: '30');
   final _priceController = TextEditingController(text: '0');
+
+  // Focus nodes
+  final _nameFocusNode = FocusNode();
 
   // Ingredients and Steps state using RecipeUtils models
   final List<RecipeIngredientData> _ingredients = [];
@@ -41,11 +46,16 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
     _priceController.addListener(_calculateSummary);
     _profitMarginController.addListener(_calculateSummary);
 
-    // Initialize with one empty step
-    _addStep();
+    // Initialize with one empty step for new recipes
+    _addStep(shouldFocus: false);
+
+    // Focus name field on start
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _nameFocusNode.requestFocus();
+    });
   }
 
-  void _addStep({int? atIndex}) {
+  void _addStep({int? atIndex, bool shouldFocus = true}) {
     setState(() {
       final newStep = RecipeStepData();
       if (atIndex != null && atIndex < _steps.length) {
@@ -53,10 +63,12 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
       } else {
         _steps.add(newStep);
       }
-      // Wait for next frame to focus
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        newStep.focusNode.requestFocus();
-      });
+
+      if (shouldFocus) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          newStep.focusNode.requestFocus();
+        });
+      }
     });
   }
 
@@ -91,11 +103,9 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
       _ingredients[index].amountController.dispose();
       _ingredients.removeAt(index);
 
-      // Cleanup: remove from all step tags and text
       for (var step in _steps) {
         if (step.taggedIngredients.contains(ingredientToRemove)) {
           step.taggedIngredients.remove(ingredientToRemove);
-          // Remove from text via regex: [name]
           final pattern = '\\[${RegExp.escape(ingredientToRemove.name)}\\]';
           step.instructionController.text = step.instructionController.text
               .replaceAll(RegExp(pattern), '');
@@ -118,6 +128,7 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
     _yieldNameController.dispose();
     _profitMarginController.dispose();
     _priceController.dispose();
+    _nameFocusNode.dispose();
 
     for (var ingredient in _ingredients) {
       ingredient.amountController.dispose();
@@ -145,25 +156,32 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
 
   Future<void> _saveRecipe() async {
     if (_formKey.currentState!.validate()) {
-      final db = ref.read(databaseProvider);
-      final l10n = AppLocalizations.of(context)!;
+      setState(() => _isLoading = true);
+      try {
+        final db = ref.read(databaseProvider);
+        final l10n = AppLocalizations.of(context)!;
 
-      await RecipeUtils.saveRecipe(
-        db: db,
-        name: _nameController.text,
-        description: _descriptionController.text,
-        yieldText: _yieldController.text,
-        yieldName: _yieldNameController.text.isEmpty
-            ? l10n.unit_portions.toLowerCase()
-            : _yieldNameController.text,
-        profitMarginText: _profitMarginController.text,
-        priceText: _priceController.text,
-        ingredients: _ingredients,
-        steps: _steps,
-      );
+        await RecipeUtils.saveRecipe(
+          db: db,
+          name: _nameController.text,
+          description: _descriptionController.text,
+          yieldText: _yieldController.text,
+          yieldName: _yieldNameController.text.isEmpty
+              ? l10n.unit_portions.toLowerCase()
+              : _yieldNameController.text,
+          profitMarginText: _profitMarginController.text,
+          priceText: _priceController.text,
+          ingredients: _ingredients,
+          steps: _steps,
+        );
 
-      if (mounted) {
-        Navigator.of(context).pop();
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      } catch (e) {
+        // Handle error
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -173,7 +191,6 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    // Initial value for yield unit if empty
     if (_yieldNameController.text.isEmpty) {
       _yieldNameController.text = l10n.unit_portions.toLowerCase();
     }
@@ -182,26 +199,20 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Text(
-          l10n.recipe_title,
+          l10n.new_recipe_title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-              icon: Icon(
-                Icons.more_vert,
-                size: 28,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              onPressed: () {
-                // TODO: Settings/Config menu
-              },
-              tooltip: l10n.config_button,
+          IconButton(
+            icon: Icon(
+              Icons.more_vert,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+            onPressed: () {},
+            tooltip: l10n.config_button,
           ),
         ],
       ),
@@ -217,206 +228,444 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
           ],
         ),
         padding: EdgeInsets.only(
-          left: 22,
-          right: 22,
-          top: 16,
-          bottom: MediaQuery.of(context).padding.bottom + 16,
+          left: 16,
+          right: 16,
+          top: 12,
+          bottom: MediaQuery.of(context).padding.bottom + 12,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Column 1: Financial Info List
+              Expanded(
+                flex: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildMiniInfo(l10n.total_cost, _currentTotalCost),
-                    const SizedBox(width: 12),
-                    _buildMiniInfo(
+                    _buildInfoRow(l10n.total_cost, _currentTotalCost),
+                    const SizedBox(height: 2),
+                    _buildInfoRow(
                       l10n.cost_per_portion,
                       _currentCostPerPortion,
                     ),
-                    const SizedBox(width: 12),
-                    _buildMiniInfo(
+                    const SizedBox(height: 2),
+                    _buildInfoRow(
                       l10n.profit_per_portion,
                       _currentProfitPerPortion,
                     ),
+                    const Divider(height: 12, thickness: 0.5),
+                    Text(
+                      l10n.est_revenue,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 8,
+                      ),
+                    ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '\$ ${_currentRevenue.toStringAsFixed(2)}',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.est_revenue,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                Text(
-                  '\$ ${_currentRevenue.toStringAsFixed(2)}',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              onPressed: _saveRecipe,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(15)),
-                ),
-                elevation: 0,
               ),
-              child: Text(
-                l10n.save_button.toUpperCase(),
-                style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5),
+              const VerticalDivider(width: 20, thickness: 0.5),
+              // Column 2: 2x2 Grid with Inputs and Save
+              Expanded(
+                flex: 6,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildLabeledSmallEntry(
+                            controller: _profitMarginController,
+                            label: "Margin",
+                            suffix: "%",
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: _buildLabeledSmallEntry(
+                            controller: _priceController,
+                            label: "Price",
+                            suffix: "\$",
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: _buildLabeledSmallEntry(
+                            height: 31,
+                            controller: _yieldController,
+                            label: l10n.unit_portions,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 31, // Matches the small TextField height
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _saveRecipe,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Text(
+                                      l10n.save_button.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 10,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 22.0),
-          children: [
-            const SizedBox(height: 20),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 22.0),
+                children: [
+                  const SizedBox(height: 16),
 
-            // Header fields
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: _buildFloatingTextField(
+                  // Name Field
+                  _buildCustomTextField(
                     controller: _nameController,
+                    focusNode: _nameFocusNode,
                     label: l10n.recipe_name,
-                    icon: Icons.cake_outlined,
-                    autofocus: true,
-                    validator: (value) => value == null || value.isEmpty
-                        ? l10n.validation_required
-                        : null,
+                    hint: l10n.recipe_name,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return l10n.recipe_name;
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
-                  child: _buildFloatingTextField(
-                    controller: _yieldController,
-                    label: l10n.unit_portions,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+
+                  const SizedBox(height: 8),
+
+                  // Description
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => setState(
+                          () => _showDescription = !_showDescription,
+                        ),
+                        icon: Icon(
+                          _showDescription
+                              ? Icons.expand_less
+                              : Icons.description_outlined,
+                        ),
+                        label: Text(l10n.recipe_description),
+                        style: TextButton.styleFrom(
+                          foregroundColor: theme.colorScheme.primary,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                      if (_showDescription)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: _buildCustomTextField(
+                            controller: _descriptionController,
+                            label: "",
+                            hint: l10n.recipe_description_hint,
+                            maxLines: 3,
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Ingredients Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader(l10n.ingredients_title),
+                      IconButton(
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          color: theme.colorScheme.primary,
+                        ),
+                        onPressed: _showGlobalIngredientPicker,
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 1),
+                  const SizedBox(height: 16),
+
+                  if (_ingredients.isEmpty)
+                    _buildEmptyPlaceholder(
+                      l10n.no_ingredients,
+                      Icons.restaurant_menu,
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _ingredients.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (context, index) =>
+                          _buildIngredientItem(index),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
 
-            // Description field
-            _buildCustomTextField(
-              controller: _descriptionController,
-              label: l10n.recipe_description,
-              hint: l10n.recipe_description_hint,
-              icon: Icons.description_outlined,
-              maxLines: 2,
-            ),
-            const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-            // Financial Section
-            _buildSectionHeader(l10n.financial_targets),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildValueEntry(
-                    controller: _profitMarginController,
-                    label: l10n.target_profit_margin,
-                    suffix: '%',
+                  // Steps Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader(l10n.recipe_steps),
+                      IconButton(
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          color: theme.colorScheme.primary,
+                        ),
+                        onPressed: () => _addStep(),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildValueEntry(
-                    controller: _priceController,
-                    label: l10n.target_price_portion,
-                    prefix: '\$',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
+                  const Divider(height: 1),
+                  const SizedBox(height: 16),
 
-            // Ingredients Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildSectionHeader(l10n.ingredients_title),
-                IconButton(
-                  icon: Icon(
-                    Icons.add_circle_outline,
-                    color: theme.colorScheme.primary,
-                  ),
-                  onPressed: _showGlobalIngredientPicker,
-                ),
-              ],
-            ),
-            const Divider(height: 1),
-            const SizedBox(height: 16),
-
-            if (_ingredients.isEmpty)
-              _buildEmptyPlaceholder(l10n.no_ingredients, Icons.restaurant_menu)
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _ingredients.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) => _buildIngredientItem(index),
+                  if (_steps.isEmpty)
+                    _buildEmptyPlaceholder(
+                      l10n.no_steps,
+                      Icons.format_list_numbered,
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _steps.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 16),
+                      itemBuilder: (context, index) => _buildStepItem(index),
+                    ),
+                  const SizedBox(height: 40),
+                ],
               ),
-
-            const SizedBox(height: 32),
-
-            // Steps Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildSectionHeader(l10n.recipe_steps),
-                IconButton(
-                  icon: Icon(
-                    Icons.add_circle_outline,
-                    color: theme.colorScheme.primary,
-                  ),
-                  onPressed: () => _addStep(),
-                ),
-              ],
             ),
-            const Divider(height: 1),
-            const SizedBox(height: 16),
+    );
+  }
 
-            if (_steps.isEmpty)
-              _buildEmptyPlaceholder(l10n.no_steps, Icons.format_list_numbered)
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _steps.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
-                itemBuilder: (context, index) => _buildStepItem(index),
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+
+  Widget _buildCustomTextField({
+    required TextEditingController controller,
+    required String label,
+    FocusNode? focusNode,
+    String? hint,
+    IconData? icon,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0, bottom: 6.0),
+            child: Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.bold,
               ),
-            const SizedBox(height: 40),
-          ],
+            ),
+          ),
+        TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          maxLines: maxLines,
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: icon != null ? Icon(icon, size: 20) : null,
+            filled: true,
+            fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.2,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(color: theme.colorScheme.error, width: 2),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, double value) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 8.5,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '\$ ${value.toStringAsFixed(2)}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+            fontSize: 10,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLabeledSmallEntry({
+    required TextEditingController controller,
+    required String label,
+    String? suffix,
+    double? width,
+    double? height,
+  }) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: width,
+      height: height,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textAlign: TextAlign.center,
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontWeight: FontWeight.w900,
+          fontSize: 10.5,
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          labelText: label,
+          labelStyle: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontSize: 10,
+          ),
+          floatingLabelStyle: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.w900,
+            fontSize: 10,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 13,
+            horizontal: 4,
+          ),
+          suffixText: suffix,
+          suffixStyle: theme.textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+            fontSize: 8.5,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          filled: true,
+          fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.3,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(
+              color: theme.colorScheme.primary,
+              width: 1.5,
+            ),
+          ),
         ),
       ),
     );
@@ -631,27 +880,30 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
                       }
                     },
                   ),
-                  Positioned(
-                    left: lastOffset.dx,
-                    top: lastOffset.dy + 8, // Adjusted for text level alignment
-                    child: GestureDetector(
-                      onTap: () =>
-                          _showIngredientPickerForStep(index, isHeader: false),
-                      child: Container(
-                        margin: const EdgeInsets.only(left: 4),
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer,
-                          shape: BoxShape.circle,
+                  if (step.instructionController.text.isNotEmpty)
+                    Positioned(
+                      left: lastOffset.dx,
+                      top: lastOffset.dy + 5.5,
+                      child: GestureDetector(
+                        onTap: () => _showIngredientPickerForStep(
+                          index,
+                          isHeader: false,
                         ),
-                        child: Icon(
-                          Icons.add,
-                          size: 14,
-                          color: theme.colorScheme.onPrimaryContainer,
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            size: 14,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               );
             },
@@ -798,7 +1050,8 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
 
                               controller.text = newText;
                               controller.selection = TextSelection.collapsed(
-                                offset: (selection.start >= 0
+                                offset:
+                                    (selection.start >= 0
                                         ? selection.start
                                         : text.length) +
                                     ing.name.length +
@@ -827,218 +1080,4 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
       },
     );
   }
-
-  Widget _buildMiniInfo(String label, double value) {
-    final theme = Theme.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontSize: 10,
-          ),
-        ),
-        Text(
-          '\$ ${value.toStringAsFixed(2)}',
-          style: theme.textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w900,
-        letterSpacing: 0.5,
-      ),
-    );
-  }
-
-  Widget _buildFloatingTextField({
-    required TextEditingController controller,
-    required String label,
-    IconData? icon,
-    TextInputType? keyboardType,
-    TextAlign textAlign = TextAlign.start,
-    bool autofocus = false,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      textAlign: textAlign,
-      validator: validator,
-      autofocus: autofocus,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: icon != null ? Icon(icon, size: 20) : null,
-        filled: true,
-        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.1,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        labelStyle: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        floatingLabelStyle: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCustomTextField({
-    required TextEditingController controller,
-    required String label,
-    String? hint,
-    IconData? icon,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4.0, bottom: 6.0),
-          child: Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: icon != null ? Icon(icon, size: 20) : null,
-            filled: true,
-            fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.2,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 2,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(color: theme.colorScheme.error, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildValueEntry({
-    required TextEditingController controller,
-    required String label,
-    String prefix = '',
-    String suffix = '',
-  }) {
-    final theme = Theme.of(context);
-    return TextFormField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      textAlign: TextAlign.center,
-      style: theme.textTheme.headlineSmall?.copyWith(
-        fontWeight: FontWeight.w900,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixText: prefix.isNotEmpty ? prefix : null,
-        suffixText: suffix.isNotEmpty ? suffix : null,
-        prefixStyle: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: theme.colorScheme.primary,
-        ),
-        suffixStyle: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        filled: true,
-        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.1,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        labelStyle: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        floatingLabelStyle: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
 }
-
-class RoundedRectangleSection {
-  static const borderRadius15 = BorderRadius.all(Radius.circular(15));
-}
-

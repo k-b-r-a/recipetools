@@ -12,6 +12,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recipes_title => 'Recetas';
 
   @override
+  String get new_recipe_title => 'Nueva Receta';
+
+  @override
   String get recipe_title => 'Receta';
 
   @override
