@@ -120,6 +120,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get financial_targets => 'Objetivos Financieros';
 
   @override
+  String get financial_margin => 'Margen Total';
+
+  @override
+  String get financial_price => 'Precio por Porción';
+
+  @override
   String get no_ingredients => 'Aún no hay ingredientes.';
 
   @override

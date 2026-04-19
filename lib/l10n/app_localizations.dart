@@ -428,6 +428,18 @@ abstract class AppLocalizations {
   /// **'Financial Targets'**
   String get financial_targets;
 
+  /// No description provided for @financial_margin.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Margin'**
+  String get financial_margin;
+
+  /// No description provided for @financial_price.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per Portion'**
+  String get financial_price;
+
   /// No description provided for @no_ingredients.
   ///
   /// In en, this message translates to:

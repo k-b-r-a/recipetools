@@ -318,7 +318,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                         Expanded(
                           child: _buildLabeledSmallEntry(
                             controller: _profitMarginController,
-                            label: "Margin",
+                            label: l10n.financial_margin,
                             suffix: "%",
                           ),
                         ),
@@ -326,7 +326,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                         Expanded(
                           child: _buildLabeledSmallEntry(
                             controller: _priceController,
-                            label: "Price",
+                            label: l10n.financial_price,
                             suffix: "\$",
                           ),
                         ),

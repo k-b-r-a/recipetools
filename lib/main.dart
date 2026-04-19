@@ -94,9 +94,8 @@ class RecipeListScreen extends ConsumerWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => RecipeScreen(
-                        recipeId: recipe.recipePk,
-                      ),
+                      builder: (context) =>
+                          RecipeScreen(recipeId: recipe.recipePk),
                     ),
                   );
                 },
