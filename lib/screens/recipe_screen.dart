@@ -6,14 +6,15 @@ import '../provider/database_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/recipe_utils.dart';
 
-class AddRecipeScreen extends ConsumerStatefulWidget {
-  const AddRecipeScreen({super.key});
+class RecipeScreen extends ConsumerStatefulWidget {
+  final String recipeId;
+  const RecipeScreen({super.key, required this.recipeId});
 
   @override
-  ConsumerState<AddRecipeScreen> createState() => _AddRecipeScreenState();
+  ConsumerState<RecipeScreen> createState() => _RecipeScreenState();
 }
 
-class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
+class _RecipeScreenState extends ConsumerState<RecipeScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _showDescription = true;
@@ -25,9 +26,6 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
   final _yieldNameController = TextEditingController();
   final _profitMarginController = TextEditingController(text: '30');
   final _priceController = TextEditingController(text: '0');
-
-  // Focus nodes
-  final _nameFocusNode = FocusNode();
 
   // Ingredients and Steps state using RecipeUtils models
   final List<RecipeIngredientData> _ingredients = [];
@@ -46,13 +44,45 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
     _priceController.addListener(_calculateSummary);
     _profitMarginController.addListener(_calculateSummary);
 
-    // Initialize with one empty step for new recipes
-    _addStep(shouldFocus: false);
+    _loadRecipeData();
+  }
 
-    // Focus name field on start
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _nameFocusNode.requestFocus();
-    });
+  Future<void> _loadRecipeData() async {
+    setState(() => _isLoading = true);
+    try {
+      final db = ref.read(databaseProvider);
+      final detail = await db.getRecipeDetail(widget.recipeId);
+
+      _nameController.text = detail.recipe.name;
+      _descriptionController.text = detail.recipe.description ?? '';
+      _yieldController.text = detail.recipe.defaultYield.toString();
+      _yieldNameController.text = detail.recipe.yieldName;
+      _profitMarginController.text = (detail.recipe.targetProfitMargin * 100)
+          .toStringAsFixed(0);
+      _priceController.text = detail.recipe.targetPricePerPortion.toString();
+
+      for (var ingWithData in detail.ingredients) {
+        final data = RecipeIngredientData(
+          ingredient: ingWithData.ingredient,
+          initialAmount: ingWithData.entry.amountNeeded.toString(),
+        );
+        data.amountController.addListener(_calculateSummary);
+        _ingredients.add(data);
+      }
+
+      for (var step in detail.steps) {
+        // TODO: In the future, retrieve tagged ingredients for the step if saved in DB
+        _steps.add(RecipeStepData(initialInstruction: step.instruction));
+      }
+
+      if (_steps.isEmpty) _addStep(shouldFocus: false);
+
+      _calculateSummary();
+    } catch (e) {
+      // Handle error
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _addStep({int? atIndex, bool shouldFocus = true}) {
@@ -128,7 +158,6 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
     _yieldNameController.dispose();
     _profitMarginController.dispose();
     _priceController.dispose();
-    _nameFocusNode.dispose();
 
     for (var ingredient in _ingredients) {
       ingredient.amountController.dispose();
@@ -163,6 +192,7 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
 
         await RecipeUtils.saveRecipe(
           db: db,
+          recipePk: widget.recipeId,
           name: _nameController.text,
           description: _descriptionController.text,
           yieldText: _yieldController.text,
@@ -199,7 +229,7 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Text(
-          l10n.new_recipe_title,
+          _nameController.text,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -367,60 +397,42 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
                 children: [
                   const SizedBox(height: 16),
 
-                  // Name Field
-                  _buildCustomTextField(
-                    controller: _nameController,
-                    focusNode: _nameFocusNode,
-                    label: l10n.recipe_name,
-                    hint: l10n.recipe_name,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.recipe_name;
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 8),
-
                   // Description
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () => setState(
-                          () => _showDescription = !_showDescription,
-                        ),
-                        icon: Icon(
-                          _showDescription
-                              ? Icons.expand_less
-                              : Icons.description_outlined,
-                        ),
-                        label: Text(l10n.recipe_description),
-                        style: TextButton.styleFrom(
-                          foregroundColor: theme.colorScheme.primary,
-                          padding: EdgeInsets.zero,
-                        ),
-                      ),
-                      if (_showDescription)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
+                  if (_descriptionController.text.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () => setState(
+                            () => _showDescription = !_showDescription,
                           ),
-                          child: _buildCustomTextField(
-                            controller: _descriptionController,
-                            label: "",
-                            hint: l10n.recipe_description_hint,
-                            maxLines: 3,
+                          icon: Icon(
+                            _showDescription
+                                ? Icons.expand_less
+                                : Icons.description_outlined,
+                          ),
+                          label: Text(l10n.recipe_description),
+                          style: TextButton.styleFrom(
+                            foregroundColor: theme.colorScheme.primary,
+                            padding: EdgeInsets.zero,
                           ),
                         ),
-                    ],
-                  ),
+                        if (_showDescription)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 4.0,
+                              right: 4.0,
+                              bottom: 16.0,
+                            ),
+                            child: Text(
+                              _descriptionController.text,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
 
                   const SizedBox(height: 16),
 
@@ -510,7 +522,6 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
   Widget _buildCustomTextField({
     required TextEditingController controller,
     required String label,
-    FocusNode? focusNode,
     String? hint,
     IconData? icon,
     int maxLines = 1,
@@ -533,7 +544,6 @@ class _AddRecipeScreenState extends ConsumerState<AddRecipeScreen> {
           ),
         TextFormField(
           controller: controller,
-          focusNode: focusNode,
           maxLines: maxLines,
           validator: validator,
           decoration: InputDecoration(

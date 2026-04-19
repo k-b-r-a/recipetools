@@ -1,6 +1,7 @@
 {
   "@@locale": "es",
   "recipes_title": "Recetas",
+  "new_recipe_title": "Nueva Receta",
   "recipe_title": "Receta",
   "ingredients_title": "Ingredientes",
   "units_title": "Unidades",
@@ -36,6 +37,8 @@
   "no_steps": "Aún no hay pasos añadidos.",
   "est_revenue": "Ingresos Est.",
   "financial_targets": "Objetivos Financieros",
+  "financial_margin": "Margen Total",
+  "financial_price": "Precio por Porción",
   "no_ingredients": "Aún no hay ingredientes.",
   "unit_portions": "Porciones",
   "cost_per_portion": "Costo por Porción",

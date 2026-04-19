@@ -12,6 +12,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recipes_title => 'Recetas';
 
   @override
+  String get new_recipe_title => 'Nueva Receta';
+
+  @override
   String get recipe_title => 'Receta';
 
   @override
@@ -115,6 +118,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get financial_targets => 'Objetivos Financieros';
+
+  @override
+  String get financial_margin => 'Margen Total';
+
+  @override
+  String get financial_price => 'Precio por Porción';
 
   @override
   String get no_ingredients => 'Aún no hay ingredientes.';

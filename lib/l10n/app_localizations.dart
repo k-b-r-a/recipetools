@@ -212,6 +212,12 @@ abstract class AppLocalizations {
   /// **'Recipes'**
   String get recipes_title;
 
+  /// No description provided for @new_recipe_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New Recipe'**
+  String get new_recipe_title;
+
   /// No description provided for @recipe_title.
   ///
   /// In en, this message translates to:
@@ -421,6 +427,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Financial Targets'**
   String get financial_targets;
+
+  /// No description provided for @financial_margin.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Margin'**
+  String get financial_margin;
+
+  /// No description provided for @financial_price.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per Portion'**
+  String get financial_price;
 
   /// No description provided for @no_ingredients.
   ///

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'l10n/app_localizations.dart';
 import 'provider/database_provider.dart';
 
+import 'screens/recipe_screen.dart';
 import 'screens/add_recipe_screen.dart';
 
 void main() {
@@ -91,7 +92,12 @@ class RecipeListScreen extends ConsumerWidget {
                   child: const Icon(Icons.restaurant, color: Colors.white),
                 ),
                 onTap: () {
-                  // TODO: Navigate to recipe detail
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          RecipeScreen(recipeId: recipe.recipePk),
+                    ),
+                  );
                 },
               );
             },
