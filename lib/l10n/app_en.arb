@@ -34,6 +34,7 @@
   "delete_button": "Delete",
   "config_button": "Settings",
   "recipe_steps": "Steps",
+  "tools_title": "Tools",
   "no_steps": "No steps added yet.",
   "est_revenue": "Est. Revenue",
   "financial_targets": "Financial Targets",

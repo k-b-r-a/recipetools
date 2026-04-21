@@ -111,6 +111,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get recipe_steps => 'Steps';
 
   @override
+  String get tools_title => 'Tools';
+
+  @override
   String get no_steps => 'No steps added yet.';
 
   @override

@@ -111,6 +111,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recipe_steps => 'Pasos';
 
   @override
+  String get tools_title => 'Herramientas';
+
+  @override
   String get no_steps => 'Aún no hay pasos añadidos.';
 
   @override

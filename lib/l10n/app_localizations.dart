@@ -410,6 +410,12 @@ abstract class AppLocalizations {
   /// **'Steps'**
   String get recipe_steps;
 
+  /// No description provided for @tools_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get tools_title;
+
   /// No description provided for @no_steps.
   ///
   /// In en, this message translates to:
