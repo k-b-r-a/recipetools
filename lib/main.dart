@@ -7,6 +7,8 @@ import 'provider/database_provider.dart';
 
 import 'screens/recipe_screen.dart';
 import 'screens/add_recipe_screen.dart';
+import 'screens/ingredients_screen.dart';
+import 'screens/add_ingredient_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: RecipetoolsApp()));
@@ -54,9 +56,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     const RecipeListScreen(),
-    const PlaceholderScreen(titleKey: 'ingredients_title', icon: Icons.inventory_2_outlined),
-    const PlaceholderScreen(titleKey: 'tools_title', icon: Icons.handyman_outlined),
-    const PlaceholderScreen(titleKey: 'config_button', icon: Icons.settings_outlined),
+    const IngredientsScreen(),
+    const PlaceholderScreen(
+      titleKey: 'tools_title',
+      icon: Icons.handyman_outlined,
+    ),
+    const PlaceholderScreen(
+      titleKey: 'config_button',
+      icon: Icons.settings_outlined,
+    ),
   ];
 
   @override
@@ -87,6 +95,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         },
         children: _screens,
       ),
+      floatingActionButton: _buildFab(context),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
@@ -99,7 +108,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   color: theme.colorScheme.surface.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.4,
+                    ),
                     width: 1,
                   ),
                   boxShadow: [
@@ -122,7 +133,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     elevation: 0,
                     backgroundColor: Colors.transparent,
                     selectedIndex: _currentIndex,
-                    labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+                    labelBehavior:
+                        NavigationDestinationLabelBehavior.alwaysHide,
                     onDestinationSelected: (index) {
                       _pageController.animateToPage(
                         index,
@@ -161,6 +173,39 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
   }
+
+  Widget? _buildFab(BuildContext context) {
+    if (_currentIndex == 0) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10.0),
+        child: FloatingActionButton(
+          heroTag: 'add_recipe_fab',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const AddRecipeScreen()),
+            );
+          },
+          child: const Icon(Icons.add),
+        ),
+      );
+    } else if (_currentIndex == 1) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10.0),
+        child: FloatingActionButton(
+          heroTag: 'add_ingredient_fab',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const AddIngredientScreen(),
+              ),
+            );
+          },
+          child: const Icon(Icons.add),
+        ),
+      );
+    }
+    return null;
+  }
 }
 
 class PlaceholderScreen extends StatefulWidget {
@@ -191,7 +236,7 @@ class _PlaceholderScreenState extends State<PlaceholderScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     String title = "";
-    
+
     if (widget.titleKey == 'ingredients_title') title = l10n.ingredients_title;
     if (widget.titleKey == 'tools_title') title = l10n.tools_title;
     if (widget.titleKey == 'config_button') title = l10n.config_button;
@@ -210,7 +255,9 @@ class _PlaceholderScreenState extends State<PlaceholderScreen> {
                   const SizedBox(height: 16),
                   Text(
                     title,
-                    style: theme.textTheme.headlineMedium?.copyWith(color: Colors.grey),
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: Colors.grey,
+                    ),
                   ),
                 ],
               ),
@@ -248,7 +295,11 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          _buildFloatingPillAppBar(context, l10n.recipes_title, _scrollController),
+          _buildFloatingPillAppBar(
+            context,
+            l10n.recipes_title,
+            _scrollController,
+          ),
           recipesAsync.when(
             data: (recipes) {
               if (recipes.isEmpty) {
@@ -265,7 +316,9 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                         const SizedBox(height: 16),
                         Text(
                           l10n.recipes_title,
-                          style: theme.textTheme.headlineMedium?.copyWith(color: Colors.grey),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -276,32 +329,34 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               return SliverPadding(
                 padding: const EdgeInsets.only(bottom: 100),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final recipe = recipes[index];
-                      return ListTile(
-                        title: Text(recipe.name),
-                        subtitle: Text(recipe.description ?? ''),
-                        leading: CircleAvatar(
-                          backgroundColor: recipe.colour != null
-                              ? Color(
-                                  int.parse(recipe.colour!.replaceFirst('#', '0xFF')),
-                                )
-                              : theme.colorScheme.primary,
-                          child: const Icon(Icons.restaurant, color: Colors.white),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final recipe = recipes[index];
+                    return ListTile(
+                      title: Text(recipe.name),
+                      subtitle: Text(recipe.description ?? ''),
+                      leading: CircleAvatar(
+                        backgroundColor: recipe.colour != null
+                            ? Color(
+                                int.parse(
+                                  recipe.colour!.replaceFirst('#', '0xFF'),
+                                ),
+                              )
+                            : theme.colorScheme.primary,
+                        child: const Icon(
+                          Icons.restaurant,
+                          color: Colors.white,
                         ),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  RecipeScreen(recipeId: recipe.recipePk),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    childCount: recipes.length,
-                  ),
+                      ),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                RecipeScreen(recipeId: recipe.recipePk),
+                          ),
+                        );
+                      },
+                    );
+                  }, childCount: recipes.length),
                 ),
               );
             },
@@ -314,22 +369,15 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           ),
         ],
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 70.0),
-        child: FloatingActionButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const AddRecipeScreen()),
-            );
-          },
-          child: const Icon(Icons.add),
-        ),
-      ),
     );
   }
 }
 
-Widget _buildFloatingPillAppBar(BuildContext context, String title, ScrollController controller) {
+Widget _buildFloatingPillAppBar(
+  BuildContext context,
+  String title,
+  ScrollController controller,
+) {
   final theme = Theme.of(context);
   return SliverAppBar(
     pinned: true,
@@ -340,7 +388,8 @@ Widget _buildFloatingPillAppBar(BuildContext context, String title, ScrollContro
     elevation: 0,
     flexibleSpace: LayoutBuilder(
       builder: (context, constraints) {
-        final double percentage = (constraints.maxHeight - kToolbarHeight) / (120 - kToolbarHeight);
+        final double percentage =
+            (constraints.maxHeight - kToolbarHeight) / (120 - kToolbarHeight);
         final bool isCollapsed = constraints.maxHeight <= kToolbarHeight + 20;
 
         return GestureDetector(
@@ -363,10 +412,14 @@ Widget _buildFloatingPillAppBar(BuildContext context, String title, ScrollContro
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withValues(alpha: isCollapsed ? 0.3 : 0.0),
+                color: theme.colorScheme.surface.withValues(
+                  alpha: isCollapsed ? 0.3 : 0.0,
+                ),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: isCollapsed ? 0.2 : 0.0),
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: isCollapsed ? 0.2 : 0.0,
+                  ),
                 ),
               ),
               child: ClipRRect(

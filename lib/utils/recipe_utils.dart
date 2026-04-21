@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart' as drift;
 import '../database/database.dart';
+import '../l10n/app_localizations.dart';
 
 const uuid = Uuid();
 
@@ -27,7 +28,8 @@ class RecipeStepData {
   RecipeStepData({
     String initialInstruction = '',
     List<Ingredient>? taggedIngredients,
-  })  : instructionController = TextEditingController(text: initialInstruction),
+    TextEditingController? customController,
+  })  : instructionController = customController ?? TextEditingController(text: initialInstruction),
         focusNode = FocusNode(),
         taggedIngredients = taggedIngredients ?? [];
 
@@ -74,6 +76,51 @@ class RecipeUtils {
       profitPerPortion: profitPortion,
       profitMargin: margin,
     );
+  }
+
+  /// Converts a value from one unit to another within the same category.
+  /// If categories don't match, returns the original value (cannot convert).
+  static double convert({
+    required double value,
+    required Unit from,
+    required Unit to,
+  }) {
+    if (from.category != to.category || from.category == null) {
+      return value;
+    }
+    // 1. Convert to base unit (e.g., kg -> g)
+    final valueInBase = value * from.factorToBase;
+    // 2. Convert from base unit to target unit (e.g., g -> oz)
+    return valueInBase / to.factorToBase;
+  }
+
+  /// Translates unit names from their database keys (e.g., 'unit_grams' -> 'Grams')
+  static String translateUnitName(BuildContext context, String unitKey) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (unitKey) {
+      case 'unit_grams':
+        return l10n.unit_grams;
+      case 'unit_kilograms':
+        return l10n.unit_kilograms;
+      case 'unit_milliliters':
+        return l10n.unit_milliliters;
+      case 'unit_liters':
+        return l10n.unit_liters;
+      case 'unit_pieces':
+        return l10n.unit_pieces;
+      case 'unit_spoonfuls':
+        return l10n.unit_spoonfuls;
+      case 'unit_tablespoons':
+        return l10n.unit_tablespoons;
+      case 'unit_teaspoons':
+        return l10n.unit_teaspoons;
+      case 'unit_cups':
+        return l10n.unit_cups;
+      case 'unit_ounces':
+        return l10n.unit_ounces;
+      default:
+        return unitKey;
+    }
   }
 
   /// Calculates financials from UI models (Form)

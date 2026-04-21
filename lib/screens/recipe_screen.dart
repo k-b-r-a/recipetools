@@ -18,6 +18,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _showDescription = true;
+  bool _isUpdating = false;
 
   // Controllers
   final _nameController = TextEditingController();
@@ -37,12 +38,33 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
   double _currentCostPerPortion = 0.0;
   double _currentProfitPerPortion = 0.0;
 
+  // Coloring system
+  final List<Color> _availableColors = [
+    Colors.blue,
+    Colors.red,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.teal,
+    Colors.pink,
+    Colors.indigo,
+    Colors.amber,
+    Colors.deepOrange,
+    Colors.cyan,
+    Colors.brown,
+  ];
+
+  Color _getIngredientColor(String name) {
+    final hash = name.hashCode.abs();
+    return _availableColors[hash % _availableColors.length];
+  }
+
   @override
   void initState() {
     super.initState();
     _yieldController.addListener(_calculateSummary);
-    _priceController.addListener(_calculateSummary);
-    _profitMarginController.addListener(_calculateSummary);
+    _profitMarginController.addListener(_onMarginChanged);
+    _priceController.addListener(_onPriceChanged);
 
     _loadRecipeData();
   }
@@ -55,24 +77,26 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
 
       _nameController.text = detail.recipe.name;
       _descriptionController.text = detail.recipe.description ?? '';
-      _yieldController.text = detail.recipe.defaultYield.toString();
+      
+      _isUpdating = true;
+      _yieldController.text = _formatAmount(detail.recipe.defaultYield);
       _yieldNameController.text = detail.recipe.yieldName;
       _profitMarginController.text = (detail.recipe.targetProfitMargin * 100)
           .toStringAsFixed(0);
       _priceController.text = detail.recipe.targetPricePerPortion.toString();
+      _isUpdating = false;
 
       for (var ingWithData in detail.ingredients) {
         final data = RecipeIngredientData(
           ingredient: ingWithData.ingredient,
-          initialAmount: ingWithData.entry.amountNeeded.toString(),
+          initialAmount: _formatAmount(ingWithData.entry.amountNeeded),
         );
         data.amountController.addListener(_calculateSummary);
         _ingredients.add(data);
       }
 
       for (var step in detail.steps) {
-        // TODO: In the future, retrieve tagged ingredients for the step if saved in DB
-        _steps.add(RecipeStepData(initialInstruction: step.instruction));
+        _addStep(initialInstruction: step.instruction, shouldFocus: false);
       }
 
       if (_steps.isEmpty) _addStep(shouldFocus: false);
@@ -85,9 +109,57 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
     }
   }
 
-  void _addStep({int? atIndex, bool shouldFocus = true}) {
+  void _onMarginChanged() {
+    if (_isUpdating) return;
+    _isUpdating = true;
+    
+    final margin = double.tryParse(_profitMarginController.text) ?? 0.0;
+    if (_currentCostPerPortion > 0) {
+      final newPrice = _currentCostPerPortion * (1 + (margin / 100.0));
+      setState(() {
+        _priceController.text = newPrice.toStringAsFixed(2);
+      });
+    }
+    
+    _isUpdating = false;
+    _calculateSummary();
+  }
+
+  void _onPriceChanged() {
+    if (_isUpdating) return;
+    _isUpdating = true;
+    
+    final price = double.tryParse(_priceController.text) ?? 0.0;
+    if (_currentCostPerPortion > 0) {
+      final newMargin = ((price / _currentCostPerPortion) - 1) * 100.0;
+      setState(() {
+        _profitMarginController.text = newMargin.toStringAsFixed(0);
+      });
+    }
+    
+    _isUpdating = false;
+    _calculateSummary();
+  }
+
+  String _formatAmount(double value) {
+    if (value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
+    return value.toString();
+  }
+
+  void _addStep({String initialInstruction = '', int? atIndex, bool shouldFocus = true}) {
     setState(() {
-      final newStep = RecipeStepData();
+      final controller = IngredientTextEditingController(
+        text: initialInstruction,
+        getIngredientColor: _getIngredientColor,
+      );
+
+      final newStep = RecipeStepData(
+        initialInstruction: initialInstruction,
+        customController: controller,
+      );
+
       if (atIndex != null && atIndex < _steps.length) {
         _steps.insert(atIndex + 1, newStep);
       } else {
@@ -126,31 +198,56 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
     });
   }
 
-  void _removeIngredient(int index) {
+  Future<void> _removeIngredient(int index) async {
+    final l10n = AppLocalizations.of(context)!;
     final ingredientToRemove = _ingredients[index].ingredient;
-    setState(() {
-      _ingredients[index].amountController.removeListener(_calculateSummary);
-      _ingredients[index].amountController.dispose();
-      _ingredients.removeAt(index);
 
-      for (var step in _steps) {
-        if (step.taggedIngredients.contains(ingredientToRemove)) {
-          step.taggedIngredients.remove(ingredientToRemove);
-          final pattern = '\\[${RegExp.escape(ingredientToRemove.name)}\\]';
-          step.instructionController.text = step.instructionController.text
-              .replaceAll(RegExp(pattern), '');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.delete_button),
+        content: Text('${l10n.delete_button} ${ingredientToRemove.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.done_button),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(l10n.delete_button),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() {
+        _ingredients[index].amountController.removeListener(_calculateSummary);
+        _ingredients[index].amountController.dispose();
+        _ingredients.removeAt(index);
+
+        for (var step in _steps) {
+          if (step.taggedIngredients.contains(ingredientToRemove)) {
+            step.taggedIngredients.remove(ingredientToRemove);
+            final pattern = '\\[${RegExp.escape(ingredientToRemove.name)}\\]';
+            step.instructionController.text = step.instructionController.text
+                .replaceAll(RegExp(pattern), '');
+          }
         }
-      }
 
-      _calculateSummary();
-    });
+        _calculateSummary();
+      });
+    }
   }
 
   @override
   void dispose() {
     _yieldController.removeListener(_calculateSummary);
-    _priceController.removeListener(_calculateSummary);
-    _profitMarginController.removeListener(_calculateSummary);
+    _profitMarginController.removeListener(_onMarginChanged);
+    _priceController.removeListener(_onPriceChanged);
 
     _nameController.dispose();
     _descriptionController.dispose();
@@ -220,6 +317,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final unitsAsync = ref.watch(unitsProvider);
 
     if (_yieldNameController.text.isEmpty) {
       _yieldNameController.text = l10n.unit_portions.toLowerCase();
@@ -459,14 +557,19 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                       Icons.restaurant_menu,
                     )
                   else
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _ingredients.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12),
-                      itemBuilder: (context, index) =>
-                          _buildIngredientItem(index),
+                    unitsAsync.when(
+                      data: (units) => ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _ingredients.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) =>
+                            _buildIngredientItem(index, units),
+                      ),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (e, s) => Text('Error: $e'),
                     ),
 
                   const SizedBox(height: 32),
@@ -643,66 +746,130 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
     );
   }
 
-  Widget _buildIngredientItem(int index) {
+  Widget _buildIngredientItem(int index, List<Unit> allUnits) {
     final data = _ingredients[index];
     final theme = Theme.of(context);
+
+    final unit = allUnits.firstWhere(
+      (u) => u.unitPk == data.ingredient.unitFk,
+      orElse: () => const Unit(
+        unitPk: '',
+        name: '?',
+        symbol: '?',
+        isMutable: false,
+        factorToBase: 1.0,
+      ),
+    );
+
+    final translatedUnitName = RecipeUtils.translateUnitName(context, unit.name);
+    final color = _getIngredientColor(data.ingredient.name);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          color: color.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  data.ingredient.name,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        data.ingredient.name,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '\$ ${data.unitCost.toStringAsFixed(2)} / ${unit.symbol}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  '\$ ${data.unitCost.toStringAsFixed(3)} / unit',
+                  'Total: \$ ${data.totalCost.toStringAsFixed(2)}',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: color.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
-            child: TextField(
-              controller: data.amountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              textAlign: TextAlign.end,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              decoration: const InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 4,
+            width: 90,
+            child: Focus(
+              onFocusChange: (hasFocus) {
+                if (hasFocus) {
+                  data.amountController.selection = TextSelection(
+                    baseOffset: 0,
+                    extentOffset: data.amountController.text.length,
+                  );
+                }
+              },
+              child: TextField(
+                controller: data.amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                border: InputBorder.none,
-                hintText: '0.0',
+                textAlign: TextAlign.end,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.4),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 10,
+                    horizontal: 8,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  hintText: '0',
+                  suffixText: ' ${unit.symbol}',
+                  suffixStyle: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _calculateSummary();
+                  });
+                },
               ),
             ),
           ),
-          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.remove_circle_outline, size: 20),
             color: theme.colorScheme.error,
             onPressed: () => _removeIngredient(index),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
           ),
         ],
       ),
@@ -755,16 +922,27 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                   child: Row(
                     children: step.taggedIngredients
                         .map(
-                          (ing) => Padding(
-                            padding: const EdgeInsets.only(right: 6.0),
-                            child: Text(
-                              ing.name,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.secondary,
-                                fontWeight: FontWeight.bold,
+                          (ing) {
+                            final color = _getIngredientColor(ing.name);
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: color.withValues(alpha: 0.3)),
+                                ),
+                                child: Text(
+                                  ing.name,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: color,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          }
                         )
                         .toList(),
                   ),
@@ -885,8 +1063,16 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                   itemCount: ingredients.length,
                   itemBuilder: (context, index) {
                     final ing = ingredients[index];
+                    final color = _getIngredientColor(ing.name);
                     return ListTile(
-                      title: Text(ing.name),
+                      leading: CircleAvatar(
+                        backgroundColor: color.withValues(alpha: 0.2),
+                        child: Icon(Icons.egg_outlined, color: color, size: 20),
+                      ),
+                      title: Text(
+                        ing.name,
+                        style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                      ),
                       onTap: () {
                         _addIngredient(ing);
                         Navigator.pop(context);
@@ -951,13 +1137,22 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                       final ing = options[index];
                       final isTagged = _steps[stepIndex].taggedIngredients
                           .contains(ing);
+                      final color = _getIngredientColor(ing.name);
 
                       return ListTile(
-                        title: Text(ing.name),
+                        leading: CircleAvatar(
+                          backgroundColor: color.withValues(alpha: 0.1),
+                          radius: 14,
+                          child: Icon(Icons.egg_outlined, color: color, size: 16),
+                        ),
+                        title: Text(
+                          ing.name,
+                          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                        ),
                         trailing: isHeader && isTagged
                             ? Icon(
-                                Icons.check,
-                                color: Theme.of(context).colorScheme.primary,
+                                Icons.check_circle,
+                                color: color,
                               )
                             : null,
                         onTap: () {
@@ -1024,5 +1219,55 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
         );
       },
     );
+  }
+}
+
+class IngredientTextEditingController extends TextEditingController {
+  final Color Function(String) getIngredientColor;
+
+  IngredientTextEditingController({super.text, required this.getIngredientColor});
+
+  @override
+  TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
+    final List<InlineSpan> children = [];
+    final regex = RegExp(r'(\[)([^\]]+)(\])');
+    
+    text.splitMapJoin(
+      regex,
+      onMatch: (Match match) {
+        final openBracket = match[1]!;
+        final name = match[2]!;
+        final closeBracket = match[3]!;
+        final color = getIngredientColor(name);
+        
+        // Hide brackets using 0 font size or transparent color
+        children.add(TextSpan(
+          text: openBracket,
+          style: style?.copyWith(fontSize: 0, color: Colors.transparent),
+        ));
+        
+        children.add(TextSpan(
+          text: name,
+          style: style?.copyWith(
+            color: color,
+            fontWeight: FontWeight.bold,
+            backgroundColor: color.withValues(alpha: 0.1),
+          ),
+        ));
+
+        children.add(TextSpan(
+          text: closeBracket,
+          style: style?.copyWith(fontSize: 0, color: Colors.transparent),
+        ));
+        
+        return '';
+      },
+      onNonMatch: (String text) {
+        children.add(TextSpan(text: text, style: style));
+        return '';
+      },
+    );
+
+    return TextSpan(style: style, children: children);
   }
 }

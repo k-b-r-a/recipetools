@@ -523,6 +523,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get done_button;
+
+  /// No description provided for @add_ingredient_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Ingredient'**
+  String get add_ingredient_title;
+
+  /// No description provided for @edit_ingredient_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Ingredient'**
+  String get edit_ingredient_title;
+
+  /// No description provided for @select_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Unit'**
+  String get select_unit;
 }
 
 class _AppLocalizationsDelegate

@@ -170,6 +170,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get done_button => 'Done';
+
+  @override
+  String get add_ingredient_title => 'Add Ingredient';
+
+  @override
+  String get edit_ingredient_title => 'Edit Ingredient';
+
+  @override
+  String get select_unit => 'Select Unit';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).

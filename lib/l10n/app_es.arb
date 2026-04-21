@@ -59,5 +59,8 @@
   "mention_ingredient_title": "Mencionar Ingrediente",
   "add_ingredients_first_error": "Agrega ingredientes a la receta primero",
   "assign_step_ingredients_first_error": "Asigna ingredientes al paso en la cabecera (+)",
-  "done_button": "Hecho"
+  "done_button": "Hecho",
+  "add_ingredient_title": "Agregar Ingrediente",
+  "edit_ingredient_title": "Editar Ingrediente",
+  "select_unit": "Seleccionar Unidad"
 }

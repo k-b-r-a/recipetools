@@ -40,6 +40,12 @@ class Units extends Table {
   TextColumn get unitPk => text().clientDefault(() => uuid.v4())();
   TextColumn get name => text().withLength(max: nameLimit)();
   TextColumn get symbol => text().withLength(max: colourLimit)();
+
+  // Category to group units (e.g., 'mass', 'volume', 'count')
+  TextColumn get category => text().nullable()();
+  // Factor to convert to the base unit of the category (e.g., 1000 for kg if g is base)
+  RealColumn get factorToBase => real().withDefault(const Constant(1.0))();
+
   BoolColumn get isMutable => boolean().withDefault(const Constant(false))();
 
   @override

@@ -172,4 +172,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get done_button => 'Hecho';
+
+  @override
+  String get add_ingredient_title => 'Agregar Ingrediente';
+
+  @override
+  String get edit_ingredient_title => 'Editar Ingrediente';
+
+  @override
+  String get select_unit => 'Seleccionar Unidad';
 }
