@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'l10n/app_localizations.dart';
 import 'provider/database_provider.dart';
 import 'database/database.dart';
+import 'utils/recipe_utils.dart';
 
 import 'screens/recipe_screen.dart';
 import 'screens/add_recipe_screen.dart';
@@ -430,8 +431,8 @@ class IngredientSearchDelegate extends SearchDelegate {
                           : '';
                       return Text(
                         l10n.ingredient_price_per_quantity(
-                          ingredient.cost.toInt().toString(),
-                          ingredient.quantityForCost.toInt().toString(),
+                          RecipeUtils.formatNumber(ingredient.cost),
+                          RecipeUtils.formatNumber(ingredient.quantityForCost),
                           unitSymbol,
                         ),
                       );

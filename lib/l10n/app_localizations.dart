@@ -600,6 +600,24 @@ abstract class AppLocalizations {
   /// **'Compare'**
   String get compare_button;
 
+  /// No description provided for @merge_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Ingredients?'**
+  String get merge_confirm_title;
+
+  /// No description provided for @merge_confirm_message.
+  ///
+  /// In en, this message translates to:
+  /// **'This will replace all references to {oldName} with {newName} in your recipes. This action cannot be undone.'**
+  String merge_confirm_message(String oldName, String newName);
+
+  /// No description provided for @price_comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Comparison'**
+  String get price_comparison;
+
   /// No description provided for @error_select_unit.
   ///
   /// In en, this message translates to:

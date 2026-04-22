@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../provider/database_provider.dart';
 import '../database/database.dart';
+import '../utils/recipe_utils.dart';
 import 'add_ingredient_screen.dart';
 
 class IngredientsScreen extends ConsumerStatefulWidget {
@@ -87,8 +88,8 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                             title: Text(ingredient.name),
                             subtitle: Text(
                               l10n.ingredient_price_per_quantity(
-                                ingredient.cost.toInt().toString(),
-                                ingredient.quantityForCost.toInt().toString(),
+                                RecipeUtils.formatNumber(ingredient.cost),
+                                RecipeUtils.formatNumber(ingredient.quantityForCost),
                                 unitName,
                               ),
                             ),
@@ -157,7 +158,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
   }
 }
 
-// Re-using the same AppBar style from main.dart
+// re-using the same appbar style from main.dart
 Widget _buildFloatingPillAppBar(BuildContext context, String title, ScrollController controller) {
   final theme = Theme.of(context);
   return SliverAppBar(

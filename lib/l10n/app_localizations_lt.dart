@@ -214,6 +214,17 @@ class AppLocalizationsLt extends AppLocalizations {
   String get compare_button => 'Compare';
 
   @override
+  String get merge_confirm_title => 'Merge Ingredients?';
+
+  @override
+  String merge_confirm_message(String oldName, String newName) {
+    return 'This will replace all references to $oldName with $newName in your recipes. This action cannot be undone.';
+  }
+
+  @override
+  String get price_comparison => 'Price Comparison';
+
+  @override
   String get error_select_unit => 'Please select a unit';
 
   @override

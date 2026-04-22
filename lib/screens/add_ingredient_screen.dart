@@ -6,6 +6,7 @@ import '../database/database.dart';
 import '../provider/database_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/recipe_utils.dart';
+import 'compare_ingredients_screen.dart';
 
 class AddIngredientScreen extends ConsumerStatefulWidget {
   final Ingredient? ingredient;
@@ -105,6 +106,20 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         );
       }
     }
+  }
+
+  /// navigates to comparison screen for merging
+  void _compareAndMerge(Ingredient other) {
+    if (widget.ingredient == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CompareIngredientsScreen(
+          ingredient1: widget.ingredient!,
+          ingredient2: other,
+        ),
+      ),
+    );
   }
 
   @override
@@ -251,32 +266,27 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                                     title: Text(item.name),
                                     subtitle: Text(
                                       l10n.ingredient_price_per_quantity(
-                                        item.cost.toInt().toString(),
-                                        item.quantityForCost.toInt().toString(),
+                                        RecipeUtils.formatNumber(item.cost),
+                                        RecipeUtils.formatNumber(item.quantityForCost),
                                         '', // symbol empty for related list now
                                       ),
                                     ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        TextButton.icon(
-                                          onPressed: () {
-                                            // merge logic to be implemented
-                                          },
-                                          icon: const Icon(Icons.merge_type, size: 18),
-                                          label: Text(l10n.merge_button),
-                                        ),
-                                        TextButton.icon(
-                                          onPressed: () {
-                                            // compare logic to be implemented
-                                          },
-                                          icon: const Icon(Icons.compare_arrows, size: 18),
-                                          label: Text(l10n.compare_button),
-                                        ),
-                                      ],
-                                    ),
+                                    trailing: widget.ingredient != null ? OutlinedButton.icon(
+                                      onPressed: () => _compareAndMerge(item),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                        minimumSize: const Size(0, 36),
+                                      ),
+                                      icon: const Icon(Icons.compare_arrows, size: 18),
+                                      label: Text(
+                                        l10n.compare_button,
+                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                      ),
+                                    ) : null,
                                     onTap: () {
-                                      // pre-fill form or show details
+                                      // detail view could be here
                                     },
                                   );
                                 },

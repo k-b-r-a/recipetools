@@ -210,10 +210,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get no_similar_ingredients => 'No hay ingredientes similares';
 
   @override
-  String get merge_button => 'Merge';
+  String get merge_button => 'Combinar';
 
   @override
-  String get compare_button => 'Compare';
+  String get compare_button => 'Comparar';
+
+  @override
+  String get merge_confirm_title => '¿Combinar Ingredientes?';
+
+  @override
+  String merge_confirm_message(String oldName, String newName) {
+    return 'Esto reemplazará todas las referencias a $oldName con $newName en tus recetas. Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get price_comparison => 'Comparación de Precios';
 
   @override
   String get error_select_unit => 'Por favor selecciona una unidad';

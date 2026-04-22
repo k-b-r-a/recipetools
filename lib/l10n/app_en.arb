@@ -85,6 +85,19 @@
   "no_similar_ingredients": "No similar ingredients",
   "merge_button": "Merge",
   "compare_button": "Compare",
+  "merge_confirm_title": "Merge Ingredients?",
+  "merge_confirm_message": "This will replace all references to {oldName} with {newName} in your recipes. This action cannot be undone.",
+  "@merge_confirm_message": {
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "price_comparison": "Price Comparison",
   "error_select_unit": "Please select a unit",
   "error_prefix": "Error: {error}",
   "@error_prefix": {

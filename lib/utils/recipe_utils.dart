@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:intl/intl.dart';
 import '../database/database.dart';
 import '../l10n/app_localizations.dart';
 
@@ -56,7 +57,51 @@ class RecipeFinancialSummary {
 }
 
 class RecipeUtils {
-  /// Base logic for financial calculations
+  /// formats numbers with dots as thousands separator (e.g. 1.000)
+  static String formatNumber(num value, {int decimalDigits = 0}) {
+    final formatter = NumberFormat.decimalPattern('es_ES'); // uses dot for thousands
+    if (decimalDigits > 0) {
+      formatter.minimumFractionDigits = decimalDigits;
+      formatter.maximumFractionDigits = decimalDigits;
+    }
+    return formatter.format(value);
+  }
+
+  /// generates a theme-compliant color based on a string (ingredient name)
+  /// ensures dark colors in light mode and pastel colors in dark mode for contrast
+  static Color getIngredientColor(String name, ColorScheme colorScheme) {
+    final int hash = name.hashCode;
+    final isDark = colorScheme.brightness == Brightness.dark;
+    
+    final List<Color> palette = [
+      colorScheme.primary,
+      colorScheme.secondary,
+      colorScheme.tertiary,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+    ];
+    
+    Color baseColor = palette[hash.abs() % palette.length];
+    
+    if (isDark) {
+      // make it lighter/pastel for dark mode
+      return HSLColor.fromColor(baseColor)
+          .withLightness(0.7)
+          .withSaturation(0.6)
+          .toColor();
+    } else {
+      // make it darker for light mode
+      return HSLColor.fromColor(baseColor)
+          .withLightness(0.3)
+          .withSaturation(0.8)
+          .toColor();
+    }
+  }
+
+  /// base logic for financial calculations
   static RecipeFinancialSummary calculateFinancials({
     required double totalIngredientsCost,
     required double yieldVal,
@@ -78,8 +123,7 @@ class RecipeUtils {
     );
   }
 
-  /// Converts a value from one unit to another within the same category.
-  /// If categories don't match, returns the original value (cannot convert).
+  /// converts a value from one unit to another within the same category.
   static double convert({
     required double value,
     required Unit from,
@@ -88,13 +132,11 @@ class RecipeUtils {
     if (from.category != to.category || from.category == null) {
       return value;
     }
-    // 1. Convert to base unit (e.g., kg -> g)
     final valueInBase = value * from.factorToBase;
-    // 2. Convert from base unit to target unit (e.g., g -> oz)
     return valueInBase / to.factorToBase;
   }
 
-  /// Translates unit names from their database keys (e.g., 'unit_grams' -> 'Grams')
+  /// translates unit names from their database keys (e.g., 'unit_grams' -> 'grams')
   static String translateUnitName(BuildContext context, String unitKey) {
     final l10n = AppLocalizations.of(context)!;
     switch (unitKey) {
@@ -123,7 +165,7 @@ class RecipeUtils {
     }
   }
 
-  /// Calculates financials from UI models (Form)
+  /// calculates financials from ui models (form)
   static RecipeFinancialSummary calculateSummaryFromIngredients({
     required List<RecipeIngredientData> ingredients,
     required String yieldText,
@@ -140,7 +182,7 @@ class RecipeUtils {
     );
   }
 
-  /// Calculates financials from database objects (View)
+  /// calculates financials from database objects (view)
   static RecipeFinancialSummary calculateSummaryFromDetail(RecipeDetail detail) {
     double totalCost = 0.0;
     for (var ingWithData in detail.ingredients) {
@@ -184,19 +226,13 @@ class RecipeUtils {
     );
 
     await db.transaction(() async {
-      // 1. Update or Insert main recipe
       if (recipePk != null) {
-        await (db.update(db.recipes)
-              ..where((t) => t.recipePk.equals(actualRecipePk)))
-            .write(recipeCompanion);
+        await (db.update(db.recipes)..where((t) => t.recipePk.equals(actualRecipePk))).write(recipeCompanion);
       } else {
         await db.insertRecipe(recipeCompanion);
       }
 
-      // 2. Clear and re-insert ingredients
-      await (db.delete(db.recipeIngredients)
-            ..where((t) => t.recipeFk.equals(actualRecipePk)))
-          .go();
+      await (db.delete(db.recipeIngredients)..where((t) => t.recipeFk.equals(actualRecipePk))).go();
 
       for (var ingData in ingredients) {
         await db.into(db.recipeIngredients).insert(
@@ -208,10 +244,7 @@ class RecipeUtils {
             );
       }
 
-      // 3. Clear and re-insert steps
-      await (db.delete(db.recipeSteps)
-            ..where((t) => t.recipeFk.equals(actualRecipePk)))
-          .go();
+      await (db.delete(db.recipeSteps)..where((t) => t.recipeFk.equals(actualRecipePk))).go();
 
       for (int i = 0; i < steps.length; i++) {
         final step = _mapToCompanion(actualRecipePk, i, steps[i]);
