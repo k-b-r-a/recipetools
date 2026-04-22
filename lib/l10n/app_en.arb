@@ -59,5 +59,52 @@
   "mention_ingredient_title": "Mention Ingredient",
   "add_ingredients_first_error": "Add ingredients to the recipe first",
   "assign_step_ingredients_first_error": "Assign ingredients to the step header (+)",
-  "done_button": "Done"
+  "done_button": "Done",
+  "add_ingredient_title": "Add Ingredient",
+  "edit_ingredient_title": "Edit Ingredient",
+  "select_unit": "Select Unit",
+  "ingredient_price_per_quantity": "${price} per {quantity} {unit}",
+  "@ingredient_price_per_quantity": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "quantity": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "search_hint": "Search...",
+  "search_ingredients_hint": "Type to search ingredients...",
+  "no_ingredients_found": "No ingredients found.",
+  "no_recipes_found": "No recipes found.",
+  "related_ingredients": "Related",
+  "no_similar_ingredients": "No similar ingredients",
+  "merge_button": "Merge",
+  "compare_button": "Compare",
+  "merge_confirm_title": "Merge Ingredients?",
+  "merge_confirm_message": "This will replace all references to {oldName} with {newName} in your recipes. This action cannot be undone.",
+  "@merge_confirm_message": {
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "price_comparison": "Price Comparison",
+  "error_select_unit": "Please select a unit",
+  "error_prefix": "Error: {error}",
+  "@error_prefix": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

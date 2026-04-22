@@ -51,6 +51,32 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteIngredient(Ingredient ingredient) =>
       delete(ingredients).delete(ingredient);
 
+  Stream<List<Ingredient>> searchIngredients(String query) {
+    if (query.isEmpty) return Stream.value([]);
+    
+    // split query into words and filter out small connectors like "de", "el", "y"
+    final terms = query.toLowerCase().split(' ')
+        .where((term) => term.length > 2)
+        .toList();
+    
+    if (terms.isEmpty) {
+      // if all words were filtered, fallback to simple contains with the original query
+      return (select(ingredients)
+            ..where((t) => t.name.contains(query.trim()))
+            ..limit(5))
+          .watch();
+    }
+
+    return (select(ingredients)
+          ..where((t) {
+            // match if the name contains ANY of the significant terms
+            final expressions = terms.map((term) => t.name.contains(term)).toList();
+            return expressions.reduce((a, b) => a | b);
+          })
+          ..limit(10)) // increased limit for related results
+        .watch();
+  }
+
   // --- Relationship Queries ---
   Future<List<RecipeIngredient>> getIngredientsForRecipe(String recipePk) {
     return (select(
@@ -59,6 +85,67 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // --- Complex Queries ---
+  Future<void> mergeIngredients(
+    Ingredient oldIngredient,
+    Ingredient newIngredient,
+  ) async {
+    await transaction(() async {
+      // 1. update recipeingredients
+      final recipeIngredientsToUpdate = await (select(recipeIngredients)
+            ..where((t) => t.ingredientFk.equals(oldIngredient.ingredientPk)))
+          .get();
+
+      for (final entry in recipeIngredientsToUpdate) {
+        final existingNewEntry = await (select(recipeIngredients)
+              ..where((t) => t.recipeFk.equals(entry.recipeFk))
+              ..where((t) => t.ingredientFk.equals(newIngredient.ingredientPk)))
+            .getSingleOrNull();
+
+        if (existingNewEntry != null) {
+          await (update(recipeIngredients)
+                ..where(
+                  (t) => t.recipeIngredientPk.equals(
+                    existingNewEntry.recipeIngredientPk,
+                  ),
+                ))
+              .write(
+            RecipeIngredientsCompanion(
+              amountNeeded:
+                  Value(existingNewEntry.amountNeeded + entry.amountNeeded),
+            ),
+          );
+          await (delete(recipeIngredients)
+                ..where(
+                  (t) => t.recipeIngredientPk.equals(entry.recipeIngredientPk),
+                ))
+              .go();
+        } else {
+          await (update(recipeIngredients)
+                ..where(
+                  (t) => t.recipeIngredientPk.equals(entry.recipeIngredientPk),
+                ))
+              .write(
+            RecipeIngredientsCompanion(
+              ingredientFk: Value(newIngredient.ingredientPk),
+            ),
+          );
+        }
+      }
+
+      // 2. update recipesteps instructions
+      final oldTag = '[${oldIngredient.name}]';
+      final newTag = '[${newIngredient.name}]';
+
+      await customStatement(
+        'UPDATE recipe_steps SET instruction = REPLACE(instruction, ?, ?)',
+        [oldTag, newTag],
+      );
+
+      // 3. delete the old ingredient
+      await deleteIngredient(oldIngredient);
+    });
+  }
+
   Future<RecipeDetail> getRecipeDetail(String recipePk) async {
     final recipe = await (select(
       recipes,
@@ -127,6 +214,7 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'db.sqlite'));
+
     return NativeDatabase(file);
   });
 }

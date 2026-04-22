@@ -34,3 +34,21 @@ final unitsProvider = FutureProvider<List<Unit>>((ref) {
   final db = ref.watch(databaseProvider);
   return db.getAllUnits();
 });
+
+/// Provides a stream of ingredients that match a search query.
+final relatedIngredientsProvider =
+    StreamProvider.family<List<Ingredient>, String>((ref, query) {
+  final db = ref.watch(databaseProvider);
+  return db.searchIngredients(query);
+});
+
+/// Notifier for the global search query.
+class SearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+
+  void setQuery(String query) => state = query;
+}
+
+/// State provider for the global search query using Notifier.
+final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);

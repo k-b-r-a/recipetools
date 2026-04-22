@@ -59,5 +59,32 @@
   "mention_ingredient_title": "Mencionar Ingrediente",
   "add_ingredients_first_error": "Agrega ingredientes a la receta primero",
   "assign_step_ingredients_first_error": "Asigna ingredientes al paso en la cabecera (+)",
-  "done_button": "Hecho"
+  "done_button": "Hecho",
+  "add_ingredient_title": "Agregar Ingrediente",
+  "edit_ingredient_title": "Editar Ingrediente",
+  "select_unit": "Seleccionar Unidad",
+  "ingredient_price_per_quantity": "${price} por cada {quantity} {unit}",
+  "search_hint": "Buscar...",
+  "search_ingredients_hint": "Escribe para buscar ingredientes...",
+  "no_ingredients_found": "No se encontraron ingredientes.",
+  "no_recipes_found": "No se encontraron recetas.",
+  "related_ingredients": "Relacionados",
+  "no_similar_ingredients": "No hay ingredientes similares",
+  "merge_button": "Combinar",
+  "compare_button": "Comparar",
+  "merge_confirm_title": "¿Combinar Ingredientes?",
+  "merge_confirm_message": "Esto reemplazará todas las referencias a {oldName} con {newName} en tus recetas. Esta acción no se puede deshacer.",
+  "@merge_confirm_message": {
+    "placeholders": {
+      "oldName": {
+        "type": "String"
+      },
+      "newName": {
+        "type": "String"
+      }
+    }
+  },
+  "price_comparison": "Comparación de Precios",
+  "error_select_unit": "Por favor selecciona una unidad",
+  "error_prefix": "Error: {error}"
 }

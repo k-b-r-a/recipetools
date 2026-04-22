@@ -791,6 +791,29 @@ class $UnitsTable extends Units with TableInfo<$UnitsTable, Unit> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _factorToBaseMeta = const VerificationMeta(
+    'factorToBase',
+  );
+  @override
+  late final GeneratedColumn<double> factorToBase = GeneratedColumn<double>(
+    'factor_to_base',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
   static const VerificationMeta _isMutableMeta = const VerificationMeta(
     'isMutable',
   );
@@ -807,7 +830,14 @@ class $UnitsTable extends Units with TableInfo<$UnitsTable, Unit> {
     defaultValue: const Constant(false),
   );
   @override
-  List<GeneratedColumn> get $columns => [unitPk, name, symbol, isMutable];
+  List<GeneratedColumn> get $columns => [
+    unitPk,
+    name,
+    symbol,
+    category,
+    factorToBase,
+    isMutable,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -842,6 +872,21 @@ class $UnitsTable extends Units with TableInfo<$UnitsTable, Unit> {
     } else if (isInserting) {
       context.missing(_symbolMeta);
     }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('factor_to_base')) {
+      context.handle(
+        _factorToBaseMeta,
+        factorToBase.isAcceptableOrUnknown(
+          data['factor_to_base']!,
+          _factorToBaseMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_mutable')) {
       context.handle(
         _isMutableMeta,
@@ -869,6 +914,14 @@ class $UnitsTable extends Units with TableInfo<$UnitsTable, Unit> {
         DriftSqlType.string,
         data['${effectivePrefix}symbol'],
       )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
+      factorToBase: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}factor_to_base'],
+      )!,
       isMutable: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_mutable'],
@@ -886,11 +939,15 @@ class Unit extends DataClass implements Insertable<Unit> {
   final String unitPk;
   final String name;
   final String symbol;
+  final String? category;
+  final double factorToBase;
   final bool isMutable;
   const Unit({
     required this.unitPk,
     required this.name,
     required this.symbol,
+    this.category,
+    required this.factorToBase,
     required this.isMutable,
   });
   @override
@@ -899,6 +956,10 @@ class Unit extends DataClass implements Insertable<Unit> {
     map['unit_pk'] = Variable<String>(unitPk);
     map['name'] = Variable<String>(name);
     map['symbol'] = Variable<String>(symbol);
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    map['factor_to_base'] = Variable<double>(factorToBase);
     map['is_mutable'] = Variable<bool>(isMutable);
     return map;
   }
@@ -908,6 +969,10 @@ class Unit extends DataClass implements Insertable<Unit> {
       unitPk: Value(unitPk),
       name: Value(name),
       symbol: Value(symbol),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      factorToBase: Value(factorToBase),
       isMutable: Value(isMutable),
     );
   }
@@ -921,6 +986,8 @@ class Unit extends DataClass implements Insertable<Unit> {
       unitPk: serializer.fromJson<String>(json['unitPk']),
       name: serializer.fromJson<String>(json['name']),
       symbol: serializer.fromJson<String>(json['symbol']),
+      category: serializer.fromJson<String?>(json['category']),
+      factorToBase: serializer.fromJson<double>(json['factorToBase']),
       isMutable: serializer.fromJson<bool>(json['isMutable']),
     );
   }
@@ -931,6 +998,8 @@ class Unit extends DataClass implements Insertable<Unit> {
       'unitPk': serializer.toJson<String>(unitPk),
       'name': serializer.toJson<String>(name),
       'symbol': serializer.toJson<String>(symbol),
+      'category': serializer.toJson<String?>(category),
+      'factorToBase': serializer.toJson<double>(factorToBase),
       'isMutable': serializer.toJson<bool>(isMutable),
     };
   }
@@ -939,11 +1008,15 @@ class Unit extends DataClass implements Insertable<Unit> {
     String? unitPk,
     String? name,
     String? symbol,
+    Value<String?> category = const Value.absent(),
+    double? factorToBase,
     bool? isMutable,
   }) => Unit(
     unitPk: unitPk ?? this.unitPk,
     name: name ?? this.name,
     symbol: symbol ?? this.symbol,
+    category: category.present ? category.value : this.category,
+    factorToBase: factorToBase ?? this.factorToBase,
     isMutable: isMutable ?? this.isMutable,
   );
   Unit copyWithCompanion(UnitsCompanion data) {
@@ -951,6 +1024,10 @@ class Unit extends DataClass implements Insertable<Unit> {
       unitPk: data.unitPk.present ? data.unitPk.value : this.unitPk,
       name: data.name.present ? data.name.value : this.name,
       symbol: data.symbol.present ? data.symbol.value : this.symbol,
+      category: data.category.present ? data.category.value : this.category,
+      factorToBase: data.factorToBase.present
+          ? data.factorToBase.value
+          : this.factorToBase,
       isMutable: data.isMutable.present ? data.isMutable.value : this.isMutable,
     );
   }
@@ -961,13 +1038,16 @@ class Unit extends DataClass implements Insertable<Unit> {
           ..write('unitPk: $unitPk, ')
           ..write('name: $name, ')
           ..write('symbol: $symbol, ')
+          ..write('category: $category, ')
+          ..write('factorToBase: $factorToBase, ')
           ..write('isMutable: $isMutable')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(unitPk, name, symbol, isMutable);
+  int get hashCode =>
+      Object.hash(unitPk, name, symbol, category, factorToBase, isMutable);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -975,6 +1055,8 @@ class Unit extends DataClass implements Insertable<Unit> {
           other.unitPk == this.unitPk &&
           other.name == this.name &&
           other.symbol == this.symbol &&
+          other.category == this.category &&
+          other.factorToBase == this.factorToBase &&
           other.isMutable == this.isMutable);
 }
 
@@ -982,12 +1064,16 @@ class UnitsCompanion extends UpdateCompanion<Unit> {
   final Value<String> unitPk;
   final Value<String> name;
   final Value<String> symbol;
+  final Value<String?> category;
+  final Value<double> factorToBase;
   final Value<bool> isMutable;
   final Value<int> rowid;
   const UnitsCompanion({
     this.unitPk = const Value.absent(),
     this.name = const Value.absent(),
     this.symbol = const Value.absent(),
+    this.category = const Value.absent(),
+    this.factorToBase = const Value.absent(),
     this.isMutable = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -995,6 +1081,8 @@ class UnitsCompanion extends UpdateCompanion<Unit> {
     this.unitPk = const Value.absent(),
     required String name,
     required String symbol,
+    this.category = const Value.absent(),
+    this.factorToBase = const Value.absent(),
     this.isMutable = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : name = Value(name),
@@ -1003,6 +1091,8 @@ class UnitsCompanion extends UpdateCompanion<Unit> {
     Expression<String>? unitPk,
     Expression<String>? name,
     Expression<String>? symbol,
+    Expression<String>? category,
+    Expression<double>? factorToBase,
     Expression<bool>? isMutable,
     Expression<int>? rowid,
   }) {
@@ -1010,6 +1100,8 @@ class UnitsCompanion extends UpdateCompanion<Unit> {
       if (unitPk != null) 'unit_pk': unitPk,
       if (name != null) 'name': name,
       if (symbol != null) 'symbol': symbol,
+      if (category != null) 'category': category,
+      if (factorToBase != null) 'factor_to_base': factorToBase,
       if (isMutable != null) 'is_mutable': isMutable,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1019,6 +1111,8 @@ class UnitsCompanion extends UpdateCompanion<Unit> {
     Value<String>? unitPk,
     Value<String>? name,
     Value<String>? symbol,
+    Value<String?>? category,
+    Value<double>? factorToBase,
     Value<bool>? isMutable,
     Value<int>? rowid,
   }) {
@@ -1026,6 +1120,8 @@ class UnitsCompanion extends UpdateCompanion<Unit> {
       unitPk: unitPk ?? this.unitPk,
       name: name ?? this.name,
       symbol: symbol ?? this.symbol,
+      category: category ?? this.category,
+      factorToBase: factorToBase ?? this.factorToBase,
       isMutable: isMutable ?? this.isMutable,
       rowid: rowid ?? this.rowid,
     );
@@ -1043,6 +1139,12 @@ class UnitsCompanion extends UpdateCompanion<Unit> {
     if (symbol.present) {
       map['symbol'] = Variable<String>(symbol.value);
     }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (factorToBase.present) {
+      map['factor_to_base'] = Variable<double>(factorToBase.value);
+    }
     if (isMutable.present) {
       map['is_mutable'] = Variable<bool>(isMutable.value);
     }
@@ -1058,6 +1160,8 @@ class UnitsCompanion extends UpdateCompanion<Unit> {
           ..write('unitPk: $unitPk, ')
           ..write('name: $name, ')
           ..write('symbol: $symbol, ')
+          ..write('category: $category, ')
+          ..write('factorToBase: $factorToBase, ')
           ..write('isMutable: $isMutable, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2938,6 +3042,8 @@ typedef $$UnitsTableCreateCompanionBuilder =
       Value<String> unitPk,
       required String name,
       required String symbol,
+      Value<String?> category,
+      Value<double> factorToBase,
       Value<bool> isMutable,
       Value<int> rowid,
     });
@@ -2946,6 +3052,8 @@ typedef $$UnitsTableUpdateCompanionBuilder =
       Value<String> unitPk,
       Value<String> name,
       Value<String> symbol,
+      Value<String?> category,
+      Value<double> factorToBase,
       Value<bool> isMutable,
       Value<int> rowid,
     });
@@ -2993,6 +3101,16 @@ class $$UnitsTableFilterComposer extends Composer<_$AppDatabase, $UnitsTable> {
 
   ColumnFilters<String> get symbol => $composableBuilder(
     column: $table.symbol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get factorToBase => $composableBuilder(
+    column: $table.factorToBase,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3051,6 +3169,16 @@ class $$UnitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get factorToBase => $composableBuilder(
+    column: $table.factorToBase,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isMutable => $composableBuilder(
     column: $table.isMutable,
     builder: (column) => ColumnOrderings(column),
@@ -3074,6 +3202,14 @@ class $$UnitsTableAnnotationComposer
 
   GeneratedColumn<String> get symbol =>
       $composableBuilder(column: $table.symbol, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<double> get factorToBase => $composableBuilder(
+    column: $table.factorToBase,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get isMutable =>
       $composableBuilder(column: $table.isMutable, builder: (column) => column);
@@ -3135,12 +3271,16 @@ class $$UnitsTableTableManager
                 Value<String> unitPk = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> symbol = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<double> factorToBase = const Value.absent(),
                 Value<bool> isMutable = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UnitsCompanion(
                 unitPk: unitPk,
                 name: name,
                 symbol: symbol,
+                category: category,
+                factorToBase: factorToBase,
                 isMutable: isMutable,
                 rowid: rowid,
               ),
@@ -3149,12 +3289,16 @@ class $$UnitsTableTableManager
                 Value<String> unitPk = const Value.absent(),
                 required String name,
                 required String symbol,
+                Value<String?> category = const Value.absent(),
+                Value<double> factorToBase = const Value.absent(),
                 Value<bool> isMutable = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UnitsCompanion.insert(
                 unitPk: unitPk,
                 name: name,
                 symbol: symbol,
+                category: category,
+                factorToBase: factorToBase,
                 isMutable: isMutable,
                 rowid: rowid,
               ),

@@ -523,6 +523,112 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get done_button;
+
+  /// No description provided for @add_ingredient_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Ingredient'**
+  String get add_ingredient_title;
+
+  /// No description provided for @edit_ingredient_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Ingredient'**
+  String get edit_ingredient_title;
+
+  /// No description provided for @select_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Unit'**
+  String get select_unit;
+
+  /// No description provided for @ingredient_price_per_quantity.
+  ///
+  /// In en, this message translates to:
+  /// **'\${price} per {quantity} {unit}'**
+  String ingredient_price_per_quantity(
+    String price,
+    String quantity,
+    String unit,
+  );
+
+  /// No description provided for @search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search...'**
+  String get search_hint;
+
+  /// No description provided for @search_ingredients_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search ingredients...'**
+  String get search_ingredients_hint;
+
+  /// No description provided for @no_ingredients_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No ingredients found.'**
+  String get no_ingredients_found;
+
+  /// No description provided for @no_recipes_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No recipes found.'**
+  String get no_recipes_found;
+
+  /// No description provided for @related_ingredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Related'**
+  String get related_ingredients;
+
+  /// No description provided for @no_similar_ingredients.
+  ///
+  /// In en, this message translates to:
+  /// **'No similar ingredients'**
+  String get no_similar_ingredients;
+
+  /// No description provided for @merge_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get merge_button;
+
+  /// No description provided for @compare_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get compare_button;
+
+  /// No description provided for @merge_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Ingredients?'**
+  String get merge_confirm_title;
+
+  /// No description provided for @merge_confirm_message.
+  ///
+  /// In en, this message translates to:
+  /// **'This will replace all references to {oldName} with {newName} in your recipes. This action cannot be undone.'**
+  String merge_confirm_message(String oldName, String newName);
+
+  /// No description provided for @price_comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Comparison'**
+  String get price_comparison;
+
+  /// No description provided for @error_select_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a unit'**
+  String get error_select_unit;
+
+  /// No description provided for @error_prefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String error_prefix(String error);
 }
 
 class _AppLocalizationsDelegate

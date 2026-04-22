@@ -172,4 +172,65 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get done_button => 'Hecho';
+
+  @override
+  String get add_ingredient_title => 'Agregar Ingrediente';
+
+  @override
+  String get edit_ingredient_title => 'Editar Ingrediente';
+
+  @override
+  String get select_unit => 'Seleccionar Unidad';
+
+  @override
+  String ingredient_price_per_quantity(
+    String price,
+    String quantity,
+    String unit,
+  ) {
+    return '\$$price por cada $quantity $unit';
+  }
+
+  @override
+  String get search_hint => 'Buscar...';
+
+  @override
+  String get search_ingredients_hint => 'Escribe para buscar ingredientes...';
+
+  @override
+  String get no_ingredients_found => 'No se encontraron ingredientes.';
+
+  @override
+  String get no_recipes_found => 'No se encontraron recetas.';
+
+  @override
+  String get related_ingredients => 'Relacionados';
+
+  @override
+  String get no_similar_ingredients => 'No hay ingredientes similares';
+
+  @override
+  String get merge_button => 'Combinar';
+
+  @override
+  String get compare_button => 'Comparar';
+
+  @override
+  String get merge_confirm_title => '¿Combinar Ingredientes?';
+
+  @override
+  String merge_confirm_message(String oldName, String newName) {
+    return 'Esto reemplazará todas las referencias a $oldName con $newName en tus recetas. Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get price_comparison => 'Comparación de Precios';
+
+  @override
+  String get error_select_unit => 'Por favor selecciona una unidad';
+
+  @override
+  String error_prefix(String error) {
+    return 'Error: $error';
+  }
 }
