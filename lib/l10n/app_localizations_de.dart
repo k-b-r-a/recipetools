@@ -179,4 +179,45 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get select_unit => 'Select Unit';
+
+  @override
+  String ingredient_price_per_quantity(
+    String price,
+    String quantity,
+    String unit,
+  ) {
+    return '\$$price per $quantity $unit';
+  }
+
+  @override
+  String get search_hint => 'Search...';
+
+  @override
+  String get search_ingredients_hint => 'Type to search ingredients...';
+
+  @override
+  String get no_ingredients_found => 'No ingredients found.';
+
+  @override
+  String get no_recipes_found => 'No recipes found.';
+
+  @override
+  String get related_ingredients => 'Related';
+
+  @override
+  String get no_similar_ingredients => 'No similar ingredients';
+
+  @override
+  String get merge_button => 'Merge';
+
+  @override
+  String get compare_button => 'Compare';
+
+  @override
+  String get error_select_unit => 'Please select a unit';
+
+  @override
+  String error_prefix(String error) {
+    return 'Error: $error';
+  }
 }

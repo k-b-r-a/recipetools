@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
 import '../database/database.dart';
@@ -22,6 +23,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   late TextEditingController _quantityController;
   String? _selectedUnitPk;
   bool _isLoading = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -29,11 +31,19 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     _nameController = TextEditingController(
       text: widget.ingredient?.name ?? '',
     );
+    // automatic load: trigger search if opening existing ingredient
+    _searchQuery = _nameController.text.trim();
+    
+    _nameController.addListener(() {
+      setState(() {
+        _searchQuery = _nameController.text.trim();
+      });
+    });
     _costController = TextEditingController(
-      text: widget.ingredient?.cost.toString() ?? '',
+      text: widget.ingredient?.cost.toInt().toString() ?? '',
     );
     _quantityController = TextEditingController(
-      text: widget.ingredient?.quantityForCost.toString() ?? '',
+      text: widget.ingredient?.quantityForCost.toInt().toString() ?? '',
     );
     _selectedUnitPk = widget.ingredient?.unitFk;
   }
@@ -46,7 +56,9 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     super.dispose();
   }
 
+  /// saves the ingredient to the database
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate() && _selectedUnitPk != null) {
       setState(() => _isLoading = true);
       try {
@@ -77,24 +89,23 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         }
 
         if (mounted) Navigator.pop(context);
-        } catch (e) {
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
+            SnackBar(content: Text(l10n.error_prefix(e.toString()))),
           );
         }
-        } finally {
+      } finally {
         if (mounted) setState(() => _isLoading = false);
-        }
-        } else if (_selectedUnitPk == null) {
-        if (mounted) {
+      }
+    } else if (_selectedUnitPk == null) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a unit')),
+          SnackBar(content: Text(l10n.error_select_unit)),
         );
-        }
-        }
-        }
-
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,9 +155,8 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                               prefixText: '\$',
                               border: const OutlineInputBorder(),
                             ),
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             validator: (value) => value == null || value.isEmpty
                                 ? l10n.validation_required
                                 : null,
@@ -160,9 +170,8 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                               labelText: l10n.ingredient_quantity,
                               border: const OutlineInputBorder(),
                             ),
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             validator: (value) => value == null || value.isEmpty
                                 ? l10n.validation_required
                                 : null,
@@ -177,7 +186,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                           _selectedUnitPk = units.first.unitPk;
                         }
                         return DropdownButtonFormField<String>(
-                          value: _selectedUnitPk,
+                          initialValue: _selectedUnitPk,
                           decoration: InputDecoration(
                             labelText: l10n.units_title,
                             border: const OutlineInputBorder(),
@@ -198,7 +207,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                         );
                       },
                       loading: () => const CircularProgressIndicator(),
-                      error: (e, s) => Text('Error loading units: $e'),
+                      error: (e, s) => Text(l10n.error_prefix(e.toString())),
                     ),
                     const SizedBox(height: 32),
                     SizedBox(
@@ -213,6 +222,72 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                         child: Text(l10n.save_button.toUpperCase()),
                       ),
                     ),
+                    const SizedBox(height: 32),
+                    if (_searchQuery.isNotEmpty) ...[
+                      Text(
+                        l10n.related_ingredients,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ref.watch(relatedIngredientsProvider(_searchQuery)).when(
+                            data: (ingredients) {
+                              final filtered = ingredients
+                                  .where((i) =>
+                                      i.ingredientPk !=
+                                      widget.ingredient?.ingredientPk)
+                                  .toList();
+                              if (filtered.isEmpty) {
+                                return Text(l10n.no_similar_ingredients);
+                              }
+                              return ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) {
+                                  final item = filtered[index];
+                                  return ListTile(
+                                    title: Text(item.name),
+                                    subtitle: Text(
+                                      l10n.ingredient_price_per_quantity(
+                                        item.cost.toInt().toString(),
+                                        item.quantityForCost.toInt().toString(),
+                                        '', // symbol empty for related list now
+                                      ),
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            // merge logic to be implemented
+                                          },
+                                          icon: const Icon(Icons.merge_type, size: 18),
+                                          label: Text(l10n.merge_button),
+                                        ),
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            // compare logic to be implemented
+                                          },
+                                          icon: const Icon(Icons.compare_arrows, size: 18),
+                                          label: Text(l10n.compare_button),
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      // pre-fill form or show details
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (e, s) => Text(l10n.error_prefix(e.toString())),
+                          ),
+                    ],
                   ],
                 ),
               ),

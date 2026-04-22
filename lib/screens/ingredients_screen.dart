@@ -26,6 +26,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final ingredientsAsync = ref.watch(ingredientsStreamProvider);
+    final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -35,7 +36,11 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
           _buildFloatingPillAppBar(context, l10n.ingredients_title, _scrollController),
           ingredientsAsync.when(
             data: (ingredients) {
-              if (ingredients.isEmpty) {
+              final filteredIngredients = ingredients.where((ingredient) {
+                return ingredient.name.toLowerCase().contains(searchQuery);
+              }).toList();
+
+              if (filteredIngredients.isEmpty) {
                 return SliverFillRemaining(
                   child: Center(
                     child: Column(
@@ -48,7 +53,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          l10n.no_ingredients,
+                          searchQuery.isEmpty ? l10n.no_ingredients : l10n.no_ingredients_found,
                           style: theme.textTheme.headlineMedium?.copyWith(color: Colors.grey),
                         ),
                       ],
@@ -62,7 +67,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final ingredient = ingredients[index];
+                      final ingredient = filteredIngredients[index];
                       return FutureBuilder<List<Unit>>(
                         future: ref.read(databaseProvider).getAllUnits(),
                         builder: (context, snapshot) {
@@ -81,7 +86,11 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                           return ListTile(
                             title: Text(ingredient.name),
                             subtitle: Text(
-                              '${ingredient.cost.toStringAsFixed(2)} / ${ingredient.quantityForCost} $unitName',
+                              l10n.ingredient_price_per_quantity(
+                                ingredient.cost.toInt().toString(),
+                                ingredient.quantityForCost.toInt().toString(),
+                                unitName,
+                              ),
                             ),
                             leading: CircleAvatar(
                               backgroundColor: theme.colorScheme.secondaryContainer,
@@ -104,7 +113,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                         },
                       );
                     },
-                    childCount: ingredients.length,
+                    childCount: filteredIngredients.length,
                   ),
                 ),
               );
@@ -113,7 +122,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (error, stack) => SliverFillRemaining(
-              child: Center(child: Text('Error: $error')),
+              child: Center(child: Text(l10n.error_prefix(error.toString()))),
             ),
           ),
         ],
@@ -131,7 +140,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.done_button), // Using done_button as Cancel for now or add l10n
+            child: Text(l10n.done_button),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),

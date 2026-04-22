@@ -77,7 +77,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
 
       _nameController.text = detail.recipe.name;
       _descriptionController.text = detail.recipe.description ?? '';
-      
+
       _isUpdating = true;
       _yieldController.text = _formatAmount(detail.recipe.defaultYield);
       _yieldNameController.text = detail.recipe.yieldName;
@@ -112,7 +112,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
   void _onMarginChanged() {
     if (_isUpdating) return;
     _isUpdating = true;
-    
+
     final margin = double.tryParse(_profitMarginController.text) ?? 0.0;
     if (_currentCostPerPortion > 0) {
       final newPrice = _currentCostPerPortion * (1 + (margin / 100.0));
@@ -120,7 +120,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
         _priceController.text = newPrice.toStringAsFixed(2);
       });
     }
-    
+
     _isUpdating = false;
     _calculateSummary();
   }
@@ -128,7 +128,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
   void _onPriceChanged() {
     if (_isUpdating) return;
     _isUpdating = true;
-    
+
     final price = double.tryParse(_priceController.text) ?? 0.0;
     if (_currentCostPerPortion > 0) {
       final newMargin = ((price / _currentCostPerPortion) - 1) * 100.0;
@@ -136,7 +136,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
         _profitMarginController.text = newMargin.toStringAsFixed(0);
       });
     }
-    
+
     _isUpdating = false;
     _calculateSummary();
   }
@@ -148,7 +148,11 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
     return value.toString();
   }
 
-  void _addStep({String initialInstruction = '', int? atIndex, bool shouldFocus = true}) {
+  void _addStep({
+    String initialInstruction = '',
+    int? atIndex,
+    bool shouldFocus = true,
+  }) {
     setState(() {
       final controller = IngredientTextEditingController(
         text: initialInstruction,
@@ -761,7 +765,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
       ),
     );
 
-    final translatedUnitName = RecipeUtils.translateUnitName(context, unit.name);
+    RecipeUtils.translateUnitName(context, unit.name);
     final color = _getIngredientColor(data.ingredient.name);
 
     return Container(
@@ -769,9 +773,7 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -920,31 +922,32 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: step.taggedIngredients
-                        .map(
-                          (ing) {
-                            final color = _getIngredientColor(ing.name);
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 6.0),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: color.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: color.withValues(alpha: 0.3)),
-                                ),
-                                child: Text(
-                                  ing.name,
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: color,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                        )
-                        .toList(),
+                    children: step.taggedIngredients.map((ing) {
+                      final color = _getIngredientColor(ing.name);
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 6.0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: color.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            ing.name,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: color,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
               ),
@@ -1071,7 +1074,10 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                       ),
                       title: Text(
                         ing.name,
-                        style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       onTap: () {
                         _addIngredient(ing);
@@ -1143,17 +1149,21 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
                         leading: CircleAvatar(
                           backgroundColor: color.withValues(alpha: 0.1),
                           radius: 14,
-                          child: Icon(Icons.egg_outlined, color: color, size: 16),
+                          child: Icon(
+                            Icons.egg_outlined,
+                            color: color,
+                            size: 16,
+                          ),
                         ),
                         title: Text(
                           ing.name,
-                          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: color,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         trailing: isHeader && isTagged
-                            ? Icon(
-                                Icons.check_circle,
-                                color: color,
-                              )
+                            ? Icon(Icons.check_circle, color: color)
                             : null,
                         onTap: () {
                           if (isHeader) {
@@ -1225,13 +1235,20 @@ class _RecipeScreenState extends ConsumerState<RecipeScreen> {
 class IngredientTextEditingController extends TextEditingController {
   final Color Function(String) getIngredientColor;
 
-  IngredientTextEditingController({super.text, required this.getIngredientColor});
+  IngredientTextEditingController({
+    super.text,
+    required this.getIngredientColor,
+  });
 
   @override
-  TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
     final List<InlineSpan> children = [];
     final regex = RegExp(r'(\[)([^\]]+)(\])');
-    
+
     text.splitMapJoin(
       regex,
       onMatch: (Match match) {
@@ -1239,27 +1256,33 @@ class IngredientTextEditingController extends TextEditingController {
         final name = match[2]!;
         final closeBracket = match[3]!;
         final color = getIngredientColor(name);
-        
-        // Hide brackets using 0 font size or transparent color
-        children.add(TextSpan(
-          text: openBracket,
-          style: style?.copyWith(fontSize: 0, color: Colors.transparent),
-        ));
-        
-        children.add(TextSpan(
-          text: name,
-          style: style?.copyWith(
-            color: color,
-            fontWeight: FontWeight.bold,
-            backgroundColor: color.withValues(alpha: 0.1),
-          ),
-        ));
 
-        children.add(TextSpan(
-          text: closeBracket,
-          style: style?.copyWith(fontSize: 0, color: Colors.transparent),
-        ));
-        
+        // Hide brackets using 0 font size or transparent color
+        children.add(
+          TextSpan(
+            text: openBracket,
+            style: style?.copyWith(fontSize: 0, color: Colors.transparent),
+          ),
+        );
+
+        children.add(
+          TextSpan(
+            text: name,
+            style: style?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+              backgroundColor: color.withValues(alpha: 0.1),
+            ),
+          ),
+        );
+
+        children.add(
+          TextSpan(
+            text: closeBracket,
+            style: style?.copyWith(fontSize: 0, color: Colors.transparent),
+          ),
+        );
+
         return '';
       },
       onNonMatch: (String text) {

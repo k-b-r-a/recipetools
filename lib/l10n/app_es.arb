@@ -62,5 +62,16 @@
   "done_button": "Hecho",
   "add_ingredient_title": "Agregar Ingrediente",
   "edit_ingredient_title": "Editar Ingrediente",
-  "select_unit": "Seleccionar Unidad"
+  "select_unit": "Seleccionar Unidad",
+  "ingredient_price_per_quantity": "${price} por cada {quantity} {unit}",
+  "search_hint": "Buscar...",
+  "search_ingredients_hint": "Escribe para buscar ingredientes...",
+  "no_ingredients_found": "No se encontraron ingredientes.",
+  "no_recipes_found": "No se encontraron recetas.",
+  "related_ingredients": "Relacionados",
+  "no_similar_ingredients": "No hay ingredientes similares",
+  "merge_button": "Combinar",
+  "compare_button": "Comparar",
+  "error_select_unit": "Por favor selecciona una unidad",
+  "error_prefix": "Error: {error}"
 }

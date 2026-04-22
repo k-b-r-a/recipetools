@@ -51,6 +51,14 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteIngredient(Ingredient ingredient) =>
       delete(ingredients).delete(ingredient);
 
+  Stream<List<Ingredient>> searchIngredients(String query) {
+    if (query.isEmpty) return Stream.value([]);
+    return (select(ingredients)
+          ..where((t) => t.name.contains(query))
+          ..limit(5))
+        .watch();
+  }
+
   // --- Relationship Queries ---
   Future<List<RecipeIngredient>> getIngredientsForRecipe(String recipePk) {
     return (select(
