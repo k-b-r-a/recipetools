@@ -44,6 +44,9 @@
   "unit_portions": "Porciones",
   "cost_per_portion": "Costo por Porción",
   "profit_per_portion": "Ganancia por Porción",
+  "total_profit": "Ganancia Total",
+  "total_sale": "Venta Total",
+  "sale_per_portion": "Venta por Porción",
   "validation_required": "Requerido",
   "profit_margin_helper": "Ingrese números enteros (ej. 35 para 35%)",
   "assign_ingredients_tooltip": "Asignar ingredientes a este paso",
@@ -73,7 +76,7 @@
   "merge_button": "Combinar",
   "compare_button": "Comparar",
   "merge_confirm_title": "¿Combinar Ingredientes?",
-  "merge_confirm_message": "Esto reemplazará todas las referencias a {oldName} con {newName} en tus recetas. Esta acción no se puede deshacer.",
+  "merge_confirm_message": "Esto reemplazará todas las referencias a {oldName} con {newName} in tus recetas. Esta acción no se puede deshacer.",
   "@merge_confirm_message": {
     "placeholders": {
       "oldName": {

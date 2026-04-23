@@ -54,27 +54,50 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<Ingredient>> searchIngredients(String query) {
     if (query.isEmpty) return Stream.value([]);
     
-    // split query into words and filter out small connectors like "de", "el", "y"
-    final terms = query.toLowerCase().split(' ')
+    final trimmedQuery = query.trim().toLowerCase();
+    // split query into words and filter out small connectors
+    final terms = trimmedQuery.split(' ')
         .where((term) => term.length > 2)
         .toList();
     
     if (terms.isEmpty) {
-      // if all words were filtered, fallback to simple contains with the original query
+      // fallback to simple contains
       return (select(ingredients)
-            ..where((t) => t.name.contains(query.trim()))
+            ..where((t) => t.name.contains(trimmedQuery))
             ..limit(5))
           .watch();
     }
 
     return (select(ingredients)
           ..where((t) {
-            // match if the name contains ANY of the significant terms
             final expressions = terms.map((term) => t.name.contains(term)).toList();
             return expressions.reduce((a, b) => a | b);
-          })
-          ..limit(10)) // increased limit for related results
-        .watch();
+          }))
+        .watch()
+        .map((list) {
+          // Sort by relevance in Dart
+          list.sort((a, b) {
+            final nameA = a.name.toLowerCase();
+            final nameB = b.name.toLowerCase();
+            
+            // 1. Exact match
+            if (nameA == trimmedQuery && nameB != trimmedQuery) return -1;
+            if (nameB == trimmedQuery && nameA != trimmedQuery) return 1;
+            
+            // 2. Starts with
+            if (nameA.startsWith(trimmedQuery) && !nameB.startsWith(trimmedQuery)) return -1;
+            if (nameB.startsWith(trimmedQuery) && !nameA.startsWith(trimmedQuery)) return 1;
+            
+            // 3. Count matching terms
+            int matchesA = terms.where((t) => nameA.contains(t)).length;
+            int matchesB = terms.where((t) => nameB.contains(t)).length;
+            if (matchesA != matchesB) return matchesB.compareTo(matchesA);
+            
+            // 4. Alphabetical fallback
+            return nameA.compareTo(nameB);
+          });
+          return list.take(15).toList(); // Return more results now that they are sorted
+        });
   }
 
   // --- Relationship Queries ---
@@ -85,6 +108,17 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // --- Complex Queries ---
+  Future<void> resetDatabase() async {
+    await transaction(() async {
+      await delete(recipeIngredients).go();
+      await delete(recipeSteps).go();
+      await delete(recipes).go();
+      await delete(ingredients).go();
+      await delete(units).go();
+      await initializeDefaultDatabase(this);
+    });
+  }
+
   Future<void> mergeIngredients(
     Ingredient oldIngredient,
     Ingredient newIngredient,
@@ -187,20 +221,6 @@ class RecipeDetail {
     required this.ingredients,
     required this.steps,
   });
-
-  double get totalIngredientCost {
-    return ingredients.fold(0.0, (sum, item) {
-      final unitCost = item.ingredient.cost / item.ingredient.quantityForCost;
-      return sum + (item.entry.amountNeeded * unitCost);
-    });
-  }
-
-  double get totalCost => totalIngredientCost + (recipe.fixedOverheadCost);
-
-  double get profitPerRecipe {
-    final revenue = (recipe.targetPricePerPortion) * recipe.defaultYield;
-    return revenue - totalCost;
-  }
 }
 
 class RecipeIngredientWithData {

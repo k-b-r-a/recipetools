@@ -392,6 +392,12 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save_button;
 
+  /// No description provided for @add_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add_button;
+
   /// No description provided for @delete_button.
   ///
   /// In en, this message translates to:
@@ -469,6 +475,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profit per Portion'**
   String get profit_per_portion;
+
+  /// No description provided for @total_profit.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Profit'**
+  String get total_profit;
+
+  /// No description provided for @total_sale.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Sale'**
+  String get total_sale;
+
+  /// No description provided for @sale_per_portion.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale per Portion'**
+  String get sale_per_portion;
 
   /// No description provided for @validation_required.
   ///

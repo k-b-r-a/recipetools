@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
 import '../database/database.dart';
@@ -34,17 +33,17 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     );
     // automatic load: trigger search if opening existing ingredient
     _searchQuery = _nameController.text.trim();
-    
+
     _nameController.addListener(() {
       setState(() {
         _searchQuery = _nameController.text.trim();
       });
     });
     _costController = TextEditingController(
-      text: widget.ingredient?.cost.toInt().toString() ?? '',
+      text: widget.ingredient != null ? RecipeUtils.formatNumber(widget.ingredient!.cost, decimalDigits: 2) : '',
     );
     _quantityController = TextEditingController(
-      text: widget.ingredient?.quantityForCost.toInt().toString() ?? '',
+      text: widget.ingredient != null ? RecipeUtils.formatNumber(widget.ingredient!.quantityForCost) : '',
     );
     _selectedUnitPk = widget.ingredient?.unitFk;
   }
@@ -65,8 +64,8 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       try {
         final db = ref.read(databaseProvider);
         final name = _nameController.text.trim();
-        final cost = double.tryParse(_costController.text) ?? 0.0;
-        final quantity = double.tryParse(_quantityController.text) ?? 1.0;
+        final cost = RecipeUtils.parseFormattedNumber(_costController.text);
+        final quantity = RecipeUtils.parseFormattedNumber(_quantityController.text);
 
         if (widget.ingredient == null) {
           await db.insertIngredient(
@@ -101,9 +100,9 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       }
     } else if (_selectedUnitPk == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.error_select_unit)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.error_select_unit)));
       }
     }
   }
@@ -170,8 +169,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                               prefixText: '\$',
                               border: const OutlineInputBorder(),
                             ),
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             validator: (value) => value == null || value.isEmpty
                                 ? l10n.validation_required
                                 : null,
@@ -185,8 +183,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                               labelText: l10n.ingredient_quantity,
                               border: const OutlineInputBorder(),
                             ),
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             validator: (value) => value == null || value.isEmpty
                                 ? l10n.validation_required
                                 : null,
@@ -246,12 +243,16 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      ref.watch(relatedIngredientsProvider(_searchQuery)).when(
+                      ref
+                          .watch(relatedIngredientsProvider(_searchQuery))
+                          .when(
                             data: (ingredients) {
                               final filtered = ingredients
-                                  .where((i) =>
-                                      i.ingredientPk !=
-                                      widget.ingredient?.ingredientPk)
+                                  .where(
+                                    (i) =>
+                                        i.ingredientPk !=
+                                        widget.ingredient?.ingredientPk,
+                                  )
                                   .toList();
                               if (filtered.isEmpty) {
                                 return Text(l10n.no_similar_ingredients);
@@ -267,24 +268,47 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                                     subtitle: Text(
                                       l10n.ingredient_price_per_quantity(
                                         RecipeUtils.formatNumber(item.cost),
-                                        RecipeUtils.formatNumber(item.quantityForCost),
+                                        RecipeUtils.formatNumber(
+                                          item.quantityForCost,
+                                        ),
                                         '', // symbol empty for related list now
                                       ),
                                     ),
-                                    trailing: widget.ingredient != null ? OutlinedButton.icon(
-                                      onPressed: () => _compareAndMerge(item),
-                                      style: OutlinedButton.styleFrom(
-                                        side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                                        minimumSize: const Size(0, 36),
-                                      ),
-                                      icon: const Icon(Icons.compare_arrows, size: 18),
-                                      label: Text(
-                                        l10n.compare_button,
-                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                      ),
-                                    ) : null,
+                                    trailing: widget.ingredient != null
+                                        ? OutlinedButton.icon(
+                                            onPressed: () =>
+                                                _compareAndMerge(item),
+                                            style: OutlinedButton.styleFrom(
+                                              side: BorderSide(
+                                                color: theme
+                                                    .colorScheme
+                                                    .outlineVariant
+                                                    .withValues(alpha: 0.5),
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 0,
+                                                  ),
+                                              minimumSize: const Size(0, 36),
+                                            ),
+                                            icon: const Icon(
+                                              Icons.compare_arrows,
+                                              size: 18,
+                                            ),
+                                            label: Text(
+                                              l10n.compare_button,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          )
+                                        : null,
                                     onTap: () {
                                       // detail view could be here
                                     },
@@ -295,7 +319,8 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                             loading: () => const Center(
                               child: CircularProgressIndicator(),
                             ),
-                            error: (e, s) => Text(l10n.error_prefix(e.toString())),
+                            error: (e, s) =>
+                                Text(l10n.error_prefix(e.toString())),
                           ),
                     ],
                   ],

@@ -102,6 +102,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get save_button => 'Save';
 
   @override
+  String get add_button => 'Add';
+
+  @override
   String get delete_button => 'Delete';
 
   @override
@@ -139,6 +142,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get profit_per_portion => 'Profit per Portion';
+
+  @override
+  String get total_profit => 'Total Profit';
+
+  @override
+  String get total_sale => 'Total Sale';
+
+  @override
+  String get sale_per_portion => 'Sale per Portion';
 
   @override
   String get validation_required => 'Required';

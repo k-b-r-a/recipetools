@@ -102,6 +102,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get save_button => 'Guardar';
 
   @override
+  String get add_button => 'Add';
+
+  @override
   String get delete_button => 'Eliminar';
 
   @override
@@ -139,6 +142,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profit_per_portion => 'Ganancia por Porción';
+
+  @override
+  String get total_profit => 'Ganancia Total';
+
+  @override
+  String get total_sale => 'Venta Total';
+
+  @override
+  String get sale_per_portion => 'Venta por Porción';
 
   @override
   String get validation_required => 'Requerido';
@@ -220,7 +232,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String merge_confirm_message(String oldName, String newName) {
-    return 'Esto reemplazará todas las referencias a $oldName con $newName en tus recetas. Esta acción no se puede deshacer.';
+    return 'Esto reemplazará todas las referencias a $oldName con $newName in tus recetas. Esta acción no se puede deshacer.';
   }
 
   @override

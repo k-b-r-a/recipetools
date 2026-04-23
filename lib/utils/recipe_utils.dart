@@ -16,7 +16,7 @@ class RecipeIngredientData {
     String initialAmount = '0',
   }) : amountController = TextEditingController(text: initialAmount);
 
-  double get amount => double.tryParse(amountController.text) ?? 0.0;
+  double get amount => RecipeUtils.parseFormattedNumber(amountController.text);
   double get unitCost => ingredient.cost / ingredient.quantityForCost;
   double get totalCost => unitCost * amount;
 }
@@ -42,14 +42,16 @@ class RecipeStepData {
 
 class RecipeFinancialSummary {
   final double totalCost;
-  final double revenue;
+  final double totalRevenue; // Gross: Price * Yield
+  final double totalProfit; // Net: Revenue - Cost
   final double costPerPortion;
   final double profitPerPortion;
-  final double profitMargin;
+  final double profitMargin; // Markup %: (Profit / Cost) * 100
 
   RecipeFinancialSummary({
     required this.totalCost,
-    required this.revenue,
+    required this.totalRevenue,
+    required this.totalProfit,
     required this.costPerPortion,
     required this.profitPerPortion,
     required this.profitMargin,
@@ -65,6 +67,14 @@ class RecipeUtils {
       formatter.maximumFractionDigits = decimalDigits;
     }
     return formatter.format(value);
+  }
+
+  /// Parses a number string that might contain thousands separators (dots) and decimal commas
+  static double parseFormattedNumber(String text) {
+    if (text.isEmpty) return 0.0;
+    // Remove dots (thousands) and replace comma with dot (decimal)
+    String clean = text.replaceAll('.', '').replaceAll(',', '.');
+    return double.tryParse(clean) ?? 0.0;
   }
 
   /// generates a theme-compliant color based on a string (ingredient name)
@@ -107,20 +117,36 @@ class RecipeUtils {
     required double yieldVal,
     required double pricePerPortion,
   }) {
-    final totalGrossRevenue = pricePerPortion * yieldVal;
-    final currentRevenue = totalGrossRevenue - totalIngredientsCost;
+    final totalRevenue = pricePerPortion * yieldVal;
+    final totalProfit = totalRevenue - totalIngredientsCost;
     
     final costPortion = yieldVal > 0 ? totalIngredientsCost / yieldVal : 0.0;
-    final profitPortion = yieldVal > 0 ? currentRevenue / yieldVal : 0.0;
-    final margin = totalGrossRevenue > 0 ? (currentRevenue / totalGrossRevenue) * 100 : 0.0;
+    final profitPortion = yieldVal > 0 ? totalProfit / yieldVal : 0.0;
+    
+    // Markup logic: (Profit / Cost) * 100
+    final markup = totalIngredientsCost > 0 
+        ? (totalProfit / totalIngredientsCost) * 100 
+        : 0.0;
 
     return RecipeFinancialSummary(
       totalCost: totalIngredientsCost,
-      revenue: currentRevenue,
+      totalRevenue: totalRevenue,
+      totalProfit: totalProfit,
       costPerPortion: costPortion,
       profitPerPortion: profitPortion,
-      profitMargin: margin,
+      profitMargin: markup,
     );
+  }
+
+  /// Calculates the required price per portion to achieve a specific markup margin
+  static double calculatePriceFromMarkup({
+    required double totalIngredientsCost,
+    required double yieldVal,
+    required double targetMarkupPercent,
+  }) {
+    if (yieldVal <= 0) return 0.0;
+    final targetRevenue = totalIngredientsCost * (1 + (targetMarkupPercent / 100));
+    return targetRevenue / yieldVal;
   }
 
   /// converts a value from one unit to another within the same category.
@@ -177,8 +203,8 @@ class RecipeUtils {
     }
     return calculateFinancials(
       totalIngredientsCost: totalCost,
-      yieldVal: double.tryParse(yieldText) ?? 0.0,
-      pricePerPortion: double.tryParse(priceText) ?? 0.0,
+      yieldVal: parseFormattedNumber(yieldText),
+      pricePerPortion: parseFormattedNumber(priceText),
     );
   }
 
@@ -208,21 +234,22 @@ class RecipeUtils {
     required List<RecipeIngredientData> ingredients,
     required List<RecipeStepData> steps,
   }) async {
-    final parsedYield = double.tryParse(yieldText) ?? 1.0;
-    final parsedPrice = double.tryParse(priceText) ?? 0.0;
-    final rawMargin = double.tryParse(profitMarginText) ?? 0.0;
+    final parsedYield = parseFormattedNumber(yieldText);
+    final parsedPrice = parseFormattedNumber(priceText);
+    final rawMargin = parseFormattedNumber(profitMarginText);
     final decimalMargin = rawMargin / 100.0;
 
     final actualRecipePk = recipePk ?? uuid.v4();
 
-    final recipeCompanion = RecipesCompanion.insert(
+    final recipeCompanion = RecipesCompanion(
       recipePk: drift.Value(actualRecipePk),
-      name: name.trim(),
+      name: drift.Value(name.trim()),
       description: drift.Value(description.trim()),
-      defaultYield: parsedYield,
-      yieldName: yieldName.trim().isEmpty ? 'portions' : yieldName.trim(),
+      defaultYield: drift.Value(parsedYield <= 0 ? 1.0 : parsedYield),
+      yieldName: drift.Value(yieldName.trim().isEmpty ? 'portions' : yieldName.trim()),
       targetProfitMargin: drift.Value(decimalMargin),
       targetPricePerPortion: drift.Value(parsedPrice),
+      dateTimeModified: drift.Value(DateTime.now()),
     );
 
     await db.transaction(() async {
