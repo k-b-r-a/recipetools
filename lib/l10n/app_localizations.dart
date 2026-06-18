@@ -653,6 +653,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error: {error}'**
   String error_prefix(String error);
+
+  /// No description provided for @short_cost.
+  ///
+  /// In en, this message translates to:
+  /// **'COST'**
+  String get short_cost;
+
+  /// No description provided for @short_profit.
+  ///
+  /// In en, this message translates to:
+  /// **'PROFIT'**
+  String get short_profit;
+
+  /// No description provided for @short_price_portion.
+  ///
+  /// In en, this message translates to:
+  /// **'P/PORTION'**
+  String get short_price_portion;
+
+  /// No description provided for @per_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'per'**
+  String get per_unit;
+
+  /// No description provided for @error_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error_text;
+
+  /// No description provided for @scale_recipe_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale recipe (temporary view)'**
+  String get scale_recipe_tooltip;
+
+  /// No description provided for @temporary_view_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary View'**
+  String get temporary_view_title;
+
+  /// No description provided for @temporary_view_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a temporary view scaled by {multiplier}x. Changes will not be saved.'**
+  String temporary_view_banner(String multiplier);
+
+  /// No description provided for @scale_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale'**
+  String get scale_button;
+
+  /// No description provided for @rule_of_three_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule of Three'**
+  String get rule_of_three_title;
+
+  /// No description provided for @rule_of_three_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate proportions easily for ingredient quantities and recipe yields.'**
+  String get rule_of_three_desc;
+
+  /// No description provided for @rule_of_three_if.
+  ///
+  /// In en, this message translates to:
+  /// **'If'**
+  String get rule_of_three_if;
+
+  /// No description provided for @rule_of_three_corresponds.
+  ///
+  /// In en, this message translates to:
+  /// **'corresponds to'**
+  String get rule_of_three_corresponds;
+
+  /// No description provided for @rule_of_three_then.
+  ///
+  /// In en, this message translates to:
+  /// **'Then'**
+  String get rule_of_three_then;
+
+  /// No description provided for @rule_of_three_will_be.
+  ///
+  /// In en, this message translates to:
+  /// **'will be'**
+  String get rule_of_three_will_be;
+
+  /// No description provided for @rule_of_three_result.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get rule_of_three_result;
+
+  /// No description provided for @rule_of_three_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get rule_of_three_clear;
+
+  /// No description provided for @rule_of_three_example.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: If 100g of flour makes 10 portions, then to make 25 portions you need 250g of flour.'**
+  String get rule_of_three_example;
+
+  /// No description provided for @unit_converter_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit Converter'**
+  String get unit_converter_title;
+
+  /// No description provided for @unit_converter_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert cooking units for mass, volume, and quantities easily.'**
+  String get unit_converter_desc;
+
+  /// No description provided for @unit_converter_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get unit_converter_category;
+
+  /// No description provided for @unit_converter_from.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get unit_converter_from;
+
+  /// No description provided for @unit_converter_to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get unit_converter_to;
+
+  /// No description provided for @unit_converter_value.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get unit_converter_value;
+
+  /// No description provided for @unit_converter_result.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get unit_converter_result;
+
+  /// No description provided for @unit_category_mass.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight / Mass'**
+  String get unit_category_mass;
+
+  /// No description provided for @unit_category_volume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get unit_category_volume;
+
+  /// No description provided for @unit_category_count.
+  ///
+  /// In en, this message translates to:
+  /// **'Count / Quantity'**
+  String get unit_category_count;
 }
 
 class _AppLocalizationsDelegate

@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'tables.dart';
 import 'initialize_default_database.dart';
+import '../utils/recipe_utils.dart' hide uuid;
 
 part 'database.g.dart';
 
@@ -34,16 +35,41 @@ class AppDatabase extends _$AppDatabase {
   Future<int> insertUnit(UnitsCompanion unit) => into(units).insert(unit);
 
   // --- Recipe Queries ---
-  Future<List<Recipe>> getAllRecipes() => select(recipes).get();
-  Stream<List<Recipe>> watchAllRecipes() => select(recipes).watch();
+  Future<List<Recipe>> getAllRecipes() =>
+      (select(recipes)..orderBy([(t) => OrderingTerm(expression: t.name)])).get();
+  Stream<List<Recipe>> watchAllRecipes() =>
+      (select(recipes)..orderBy([(t) => OrderingTerm(expression: t.name)])).watch();
+
+  Stream<List<RecipeWithFinancials>> watchAllRecipesWithFinancials() {
+    final recipeStream = watchAllRecipes();
+    
+    return recipeStream.asyncMap((recipeList) async {
+      final List<RecipeWithFinancials> results = [];
+      
+      for (var recipe in recipeList) {
+        final detail = await getRecipeDetail(recipe.recipePk);
+        final financials = RecipeUtils.calculateSummaryFromDetail(detail);
+        
+        results.add(RecipeWithFinancials(
+          recipe: recipe,
+          financials: financials,
+        ));
+      }
+      
+      return results;
+    });
+  }
+
   Future<int> insertRecipe(RecipesCompanion recipe) =>
       into(recipes).insert(recipe);
   Future<bool> updateRecipe(Recipe recipe) => update(recipes).replace(recipe);
   Future<int> deleteRecipe(Recipe recipe) => delete(recipes).delete(recipe);
 
   // --- Ingredient Queries ---
-  Future<List<Ingredient>> getAllIngredients() => select(ingredients).get();
-  Stream<List<Ingredient>> watchAllIngredients() => select(ingredients).watch();
+  Future<List<Ingredient>> getAllIngredients() =>
+      (select(ingredients)..orderBy([(t) => OrderingTerm(expression: t.name)])).get();
+  Stream<List<Ingredient>> watchAllIngredients() =>
+      (select(ingredients)..orderBy([(t) => OrderingTerm(expression: t.name)])).watch();
   Future<int> insertIngredient(IngredientsCompanion ingredient) =>
       into(ingredients).insert(ingredient);
   Future<bool> updateIngredient(Ingredient ingredient) =>
@@ -209,6 +235,13 @@ class AppDatabase extends _$AppDatabase {
       steps: stepList,
     );
   }
+}
+
+class RecipeWithFinancials {
+  final Recipe recipe;
+  final RecipeFinancialSummary financials;
+
+  RecipeWithFinancials({required this.recipe, required this.financials});
 }
 
 class RecipeDetail {

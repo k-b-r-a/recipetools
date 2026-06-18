@@ -16,6 +16,12 @@ final recipesStreamProvider = StreamProvider<List<Recipe>>((ref) {
   return db.watchAllRecipes();
 });
 
+/// Stream of recipes including their calculated financial summaries.
+final recipesWithFinancialsStreamProvider = StreamProvider<List<RecipeWithFinancials>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.watchAllRecipesWithFinancials();
+});
+
 /// Any change in the 'ingredients' table will trigger an automatic UI update.
 final ingredientsStreamProvider = StreamProvider<List<Ingredient>>((ref) {
   final db = ref.watch(databaseProvider);

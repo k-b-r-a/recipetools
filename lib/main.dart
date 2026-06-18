@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'l10n/app_localizations.dart';
 import 'provider/database_provider.dart';
 import 'widgets/floating_pill_app_bar.dart';
+import 'utils/recipe_utils.dart';
 
 import 'screens/recipe_editor_screen.dart';
 import 'screens/ingredients_screen.dart';
 import 'screens/add_ingredient_screen.dart';
+import 'screens/tools_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: RecipetoolsApp()));
@@ -62,10 +64,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   final List<Widget> _screens = [
     const RecipeListScreen(),
     const IngredientsScreen(),
-    const PlaceholderScreen(
-      titleKey: 'tools_title',
-      icon: Icons.handyman_outlined,
-    ),
+    const ToolsScreen(),
     const PlaceholderScreen(
       titleKey: 'config_button',
       icon: Icons.settings_outlined,
@@ -135,15 +134,21 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                     indicatorShape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    height: 50,
+                    height: 70,
+                    labelTextStyle: WidgetStateProperty.all(
+                      const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                   child: NavigationBar(
-                    height: 50,
+                    height: 70,
                     elevation: 0,
                     backgroundColor: Colors.transparent,
                     selectedIndex: _currentIndex,
                     labelBehavior:
-                        NavigationDestinationLabelBehavior.alwaysHide,
+                        NavigationDestinationLabelBehavior.alwaysShow,
                     onDestinationSelected: (index) {
                       _pageController.animateToPage(
                         index,
@@ -478,7 +483,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final recipesAsync = ref.watch(recipesStreamProvider);
+    final recipesAsync = ref.watch(recipesWithFinancialsStreamProvider);
     final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
     final theme = Theme.of(context);
 
@@ -493,8 +498,8 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           ),
           recipesAsync.when(
             data: (recipes) {
-              final filteredRecipes = recipes.where((recipe) {
-                return recipe.name.toLowerCase().contains(searchQuery);
+              final filteredRecipes = recipes.where((item) {
+                return item.recipe.name.toLowerCase().contains(searchQuery);
               }).toList();
 
               if (filteredRecipes.isEmpty) {
@@ -528,31 +533,132 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     if (index >= filteredRecipes.length) return null;
-                    final recipe = filteredRecipes[index];
-                    return ListTile(
-                      title: Text(recipe.name),
-                      subtitle: Text(recipe.description ?? ''),
-                      leading: CircleAvatar(
-                        backgroundColor: recipe.colour != null
-                            ? Color(
-                                int.parse(
-                                  recipe.colour!.replaceFirst('#', '0xFF'),
-                                ),
-                              )
-                            : theme.colorScheme.primary,
-                        child: const Icon(
-                          Icons.restaurant,
-                          color: Colors.white,
+                    final item = filteredRecipes[index];
+                    final recipe = item.recipe;
+                    final financials = item.financials;
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: theme.colorScheme.outlineVariant.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                RecipeEditorScreen(recipeId: recipe.recipePk),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  RecipeEditorScreen(recipeId: recipe.recipePk),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: recipe.colour != null
+                                        ? Color(
+                                            int.parse(
+                                              recipe.colour!.replaceFirst(
+                                                '#',
+                                                '0xFF',
+                                              ),
+                                            ),
+                                          )
+                                        : theme.colorScheme.primary,
+                                    child: const Icon(
+                                      Icons.restaurant,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          recipe.name,
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        if (recipe.description != null &&
+                                            recipe.description!.isNotEmpty) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            recipe.description!,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: theme
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildStaticFinancialGridItem(
+                                      context,
+                                      l10n.total_cost,
+                                      '\$${RecipeUtils.formatNumber(financials.totalCost, decimalDigits: 2)}',
+                                      theme.colorScheme.errorContainer,
+                                      theme.colorScheme.onErrorContainer,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildStaticFinancialGridItem(
+                                      context,
+                                      l10n.total_profit,
+                                      '\$${RecipeUtils.formatNumber(financials.totalProfit, decimalDigits: 2)}',
+                                      theme.colorScheme.primaryContainer,
+                                      theme.colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildStaticFinancialGridItem(
+                                      context,
+                                      l10n.financial_price,
+                                      '\$${RecipeUtils.formatNumber(recipe.targetPricePerPortion, decimalDigits: 2)}',
+                                      theme.colorScheme.secondaryContainer,
+                                      theme.colorScheme.onSecondaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     );
                   }, childCount: filteredRecipes.length),
                 ),
@@ -563,6 +669,66 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
             ),
             error: (error, stack) => SliverFillRemaining(
               child: Center(child: Text(l10n.error_prefix(error.toString()))),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStaticFinancialGridItem(
+    BuildContext context,
+    String label,
+    String value,
+    Color bgColor,
+    Color textColor,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    String shortLabel = label;
+
+    if (label.toLowerCase().contains('cost')) {
+      shortLabel = l10n.short_cost;
+    } else if (label.toLowerCase().contains('profit') ||
+        label.toLowerCase().contains('ganancia')) {
+      shortLabel = l10n.short_profit;
+    } else if (label.toLowerCase().contains('price') ||
+        label.toLowerCase().contains('precio')) {
+      shortLabel = l10n.short_price_portion;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      decoration: BoxDecoration(
+        color: bgColor.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            shortLabel,
+            style: TextStyle(
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+              color: textColor.withValues(alpha: 0.8),
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: textColor,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
         ],

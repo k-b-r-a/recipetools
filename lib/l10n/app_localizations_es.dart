@@ -245,4 +245,93 @@ class AppLocalizationsEs extends AppLocalizations {
   String error_prefix(String error) {
     return 'Error: $error';
   }
+
+  @override
+  String get short_cost => 'COSTO';
+
+  @override
+  String get short_profit => 'GANANCIA';
+
+  @override
+  String get short_price_portion => 'P/PORCIÓN';
+
+  @override
+  String get per_unit => 'por';
+
+  @override
+  String get error_text => 'Error';
+
+  @override
+  String get scale_recipe_tooltip => 'Escalar receta (vista temporal)';
+
+  @override
+  String get temporary_view_title => 'Vista Temporal';
+
+  @override
+  String temporary_view_banner(String multiplier) {
+    return 'Esta es una vista temporal escalada por ${multiplier}x. Los cambios no se guardarán.';
+  }
+
+  @override
+  String get scale_button => 'Escalar';
+
+  @override
+  String get rule_of_three_title => 'Regla de Tres';
+
+  @override
+  String get rule_of_three_desc =>
+      'Calcula proporciones fácilmente para cantidades de ingredientes y rendimientos.';
+
+  @override
+  String get rule_of_three_if => 'Si';
+
+  @override
+  String get rule_of_three_corresponds => 'corresponde a';
+
+  @override
+  String get rule_of_three_then => 'Entonces';
+
+  @override
+  String get rule_of_three_will_be => 'será';
+
+  @override
+  String get rule_of_three_result => 'Resultado';
+
+  @override
+  String get rule_of_three_clear => 'Limpiar';
+
+  @override
+  String get rule_of_three_example =>
+      'Ejemplo: Si 100g de harina rinden 10 porciones, entonces para rendir 25 porciones necesitas 250g de harina.';
+
+  @override
+  String get unit_converter_title => 'Conversor de Unidades';
+
+  @override
+  String get unit_converter_desc =>
+      'Convierte unidades de cocina para masa, volumen y cantidades fácilmente.';
+
+  @override
+  String get unit_converter_category => 'Categoría';
+
+  @override
+  String get unit_converter_from => 'Desde';
+
+  @override
+  String get unit_converter_to => 'Hacia';
+
+  @override
+  String get unit_converter_value => 'Valor';
+
+  @override
+  String get unit_converter_result => 'Resultado';
+
+  @override
+  String get unit_category_mass => 'Peso / Masa';
+
+  @override
+  String get unit_category_volume => 'Volumen';
+
+  @override
+  String get unit_category_count => 'Cantidad / Unidades';
 }

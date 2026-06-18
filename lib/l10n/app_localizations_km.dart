@@ -243,4 +243,93 @@ class AppLocalizationsKm extends AppLocalizations {
   String error_prefix(String error) {
     return 'Error: $error';
   }
+
+  @override
+  String get short_cost => 'COST';
+
+  @override
+  String get short_profit => 'PROFIT';
+
+  @override
+  String get short_price_portion => 'P/PORTION';
+
+  @override
+  String get per_unit => 'per';
+
+  @override
+  String get error_text => 'Error';
+
+  @override
+  String get scale_recipe_tooltip => 'Scale recipe (temporary view)';
+
+  @override
+  String get temporary_view_title => 'Temporary View';
+
+  @override
+  String temporary_view_banner(String multiplier) {
+    return 'This is a temporary view scaled by ${multiplier}x. Changes will not be saved.';
+  }
+
+  @override
+  String get scale_button => 'Scale';
+
+  @override
+  String get rule_of_three_title => 'Rule of Three';
+
+  @override
+  String get rule_of_three_desc =>
+      'Calculate proportions easily for ingredient quantities and recipe yields.';
+
+  @override
+  String get rule_of_three_if => 'If';
+
+  @override
+  String get rule_of_three_corresponds => 'corresponds to';
+
+  @override
+  String get rule_of_three_then => 'Then';
+
+  @override
+  String get rule_of_three_will_be => 'will be';
+
+  @override
+  String get rule_of_three_result => 'Result';
+
+  @override
+  String get rule_of_three_clear => 'Clear';
+
+  @override
+  String get rule_of_three_example =>
+      'Example: If 100g of flour makes 10 portions, then to make 25 portions you need 250g of flour.';
+
+  @override
+  String get unit_converter_title => 'Unit Converter';
+
+  @override
+  String get unit_converter_desc =>
+      'Convert cooking units for mass, volume, and quantities easily.';
+
+  @override
+  String get unit_converter_category => 'Category';
+
+  @override
+  String get unit_converter_from => 'From';
+
+  @override
+  String get unit_converter_to => 'To';
+
+  @override
+  String get unit_converter_value => 'Value';
+
+  @override
+  String get unit_converter_result => 'Result';
+
+  @override
+  String get unit_category_mass => 'Weight / Mass';
+
+  @override
+  String get unit_category_volume => 'Volume';
+
+  @override
+  String get unit_category_count => 'Count / Quantity';
 }

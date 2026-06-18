@@ -11,7 +11,7 @@ void main() {
       ProviderScope(
         overrides: [
           // Override the stream provider to return an empty list immediately
-          recipesStreamProvider.overrideWith((ref) => Stream.value([])),
+          recipesWithFinancialsStreamProvider.overrideWith((ref) => Stream.value([])),
         ],
         child: const RecipetoolsApp(),
       ),

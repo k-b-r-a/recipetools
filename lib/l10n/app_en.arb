@@ -110,5 +110,40 @@
         "type": "String"
       }
     }
-  }
+  },
+  "short_cost": "COST",
+  "short_profit": "PROFIT",
+  "short_price_portion": "P/PORTION",
+  "per_unit": "per",
+  "error_text": "Error",
+  "scale_recipe_tooltip": "Scale recipe (temporary view)",
+  "temporary_view_title": "Temporary View",
+  "temporary_view_banner": "This is a temporary view scaled by {multiplier}x. Changes will not be saved.",
+  "@temporary_view_banner": {
+    "placeholders": {
+      "multiplier": {
+        "type": "String"
+      }
+    }
+  },
+  "scale_button": "Scale",
+  "rule_of_three_title": "Rule of Three",
+  "rule_of_three_desc": "Calculate proportions easily for ingredient quantities and recipe yields.",
+  "rule_of_three_if": "If",
+  "rule_of_three_corresponds": "corresponds to",
+  "rule_of_three_then": "Then",
+  "rule_of_three_will_be": "will be",
+  "rule_of_three_result": "Result",
+  "rule_of_three_clear": "Clear",
+  "rule_of_three_example": "Example: If 100g of flour makes 10 portions, then to make 25 portions you need 250g of flour.",
+  "unit_converter_title": "Unit Converter",
+  "unit_converter_desc": "Convert cooking units for mass, volume, and quantities easily.",
+  "unit_converter_category": "Category",
+  "unit_converter_from": "From",
+  "unit_converter_to": "To",
+  "unit_converter_value": "Value",
+  "unit_converter_result": "Result",
+  "unit_category_mass": "Weight / Mass",
+  "unit_category_volume": "Volume",
+  "unit_category_count": "Count / Quantity"
 }
