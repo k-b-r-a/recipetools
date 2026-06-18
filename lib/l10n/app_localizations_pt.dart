@@ -332,6 +332,65 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get unit_category_count => 'Count / Quantity';
+
+  @override
+  String get settings_general => 'General Settings';
+
+  @override
+  String get settings_reset_db => 'Reset Database';
+
+  @override
+  String get settings_reset_db_desc =>
+      'Delete all recipes and ingredients. This cannot be undone.';
+
+  @override
+  String get settings_reset_db_confirm => 'Reset Database?';
+
+  @override
+  String get settings_reset_db_warning =>
+      'Are you sure you want to delete all recipes, ingredients, and steps? This action is permanent.';
+
+  @override
+  String get settings_reset_db_success => 'Database reset successfully.';
+
+  @override
+  String get settings_theme_title => 'Theme & Style';
+
+  @override
+  String get settings_theme_mode => 'Theme Mode';
+
+  @override
+  String get settings_theme_color => 'Accent Color';
+
+  @override
+  String get settings_theme_system => 'System';
+
+  @override
+  String get settings_theme_light => 'Light';
+
+  @override
+  String get settings_theme_dark => 'Dark';
+
+  @override
+  String get settings_locale_title => 'Localization & Formatting';
+
+  @override
+  String get settings_locale_lang => 'Language';
+
+  @override
+  String get settings_locale_es => 'Spanish';
+
+  @override
+  String get settings_locale_en => 'English';
+
+  @override
+  String get settings_format_decimals => 'Decimal Places';
+
+  @override
+  String get settings_about => 'About';
+
+  @override
+  String get settings_version => 'Version';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).

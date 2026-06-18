@@ -40,7 +40,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       });
     });
     _costController = TextEditingController(
-      text: widget.ingredient != null ? RecipeUtils.formatNumber(widget.ingredient!.cost, decimalDigits: 2) : '',
+      text: widget.ingredient != null ? RecipeUtils.formatNumber(widget.ingredient!.cost) : '',
     );
     _quantityController = TextEditingController(
       text: widget.ingredient != null ? RecipeUtils.formatNumber(widget.ingredient!.quantityForCost) : '',

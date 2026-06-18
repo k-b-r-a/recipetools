@@ -59,12 +59,15 @@ class RecipeFinancialSummary {
 }
 
 class RecipeUtils {
+  static int defaultDecimalDigits = 2;
+
   /// formats numbers with dots as thousands separator (e.g. 1.000)
-  static String formatNumber(num value, {int decimalDigits = 0}) {
+  static String formatNumber(num value, {int? decimalDigits}) {
+    final digits = decimalDigits ?? defaultDecimalDigits;
     final formatter = NumberFormat.decimalPattern('es_ES'); // uses dot for thousands
-    if (decimalDigits > 0) {
-      formatter.minimumFractionDigits = decimalDigits;
-      formatter.maximumFractionDigits = decimalDigits;
+    if (digits > 0) {
+      formatter.minimumFractionDigits = digits;
+      formatter.maximumFractionDigits = digits;
     }
     return formatter.format(value);
   }

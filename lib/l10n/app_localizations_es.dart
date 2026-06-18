@@ -334,4 +334,64 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get unit_category_count => 'Cantidad / Unidades';
+
+  @override
+  String get settings_general => 'Configuración General';
+
+  @override
+  String get settings_reset_db => 'Restablecer Base de Datos';
+
+  @override
+  String get settings_reset_db_desc =>
+      'Elimina todas las recetas e ingredientes. No se puede deshacer.';
+
+  @override
+  String get settings_reset_db_confirm => '¿Restablecer Base de Datos?';
+
+  @override
+  String get settings_reset_db_warning =>
+      '¿Estás seguro de que quieres eliminar todas las recetas, ingredientes y pasos? Esta acción es permanente.';
+
+  @override
+  String get settings_reset_db_success =>
+      'Base de datos restablecida correctamente.';
+
+  @override
+  String get settings_theme_title => 'Tema y Estilo';
+
+  @override
+  String get settings_theme_mode => 'Modo de Tema';
+
+  @override
+  String get settings_theme_color => 'Color de Acento';
+
+  @override
+  String get settings_theme_system => 'Sistema';
+
+  @override
+  String get settings_theme_light => 'Claro';
+
+  @override
+  String get settings_theme_dark => 'Oscuro';
+
+  @override
+  String get settings_locale_title => 'Localización y Formato';
+
+  @override
+  String get settings_locale_lang => 'Idioma';
+
+  @override
+  String get settings_locale_es => 'Español';
+
+  @override
+  String get settings_locale_en => 'Inglés';
+
+  @override
+  String get settings_format_decimals => 'Decimales';
+
+  @override
+  String get settings_about => 'Acerca de';
+
+  @override
+  String get settings_version => 'Versión';
 }

@@ -206,7 +206,7 @@ class _RuleOfThreeScreenState extends State<RuleOfThreeScreen> {
                                 child: Text(
                                   _hasError
                                       ? 'Error'
-                                      : RecipeUtils.formatNumber(_result, decimalDigits: 2),
+                                      : RecipeUtils.formatNumber(_result),
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w900,
                                     color: _hasError
@@ -274,8 +274,8 @@ class _RuleOfThreeScreenState extends State<RuleOfThreeScreen> {
                     const SizedBox(height: 8),
                     Text(
                       l10n.localeName == 'es'
-                          ? 'Si ${_aController.text} equivale a ${_bController.text}, entonces ${_cController.text} equivale a ${RecipeUtils.formatNumber(_result, decimalDigits: 2)}.'
-                          : 'If ${_aController.text} corresponds to ${_bController.text}, then ${_cController.text} will correspond to ${RecipeUtils.formatNumber(_result, decimalDigits: 2)}.',
+                          ? 'Si ${_aController.text} equivale a ${_bController.text}, entonces ${_cController.text} equivale a ${RecipeUtils.formatNumber(_result)}.'
+                          : 'If ${_aController.text} corresponds to ${_bController.text}, then ${_cController.text} will correspond to ${RecipeUtils.formatNumber(_result)}.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                         color: theme.colorScheme.onPrimaryContainer,

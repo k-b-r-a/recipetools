@@ -190,7 +190,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
           multiplier: multiplier,
           initialName: "$originalName (x${RecipeUtils.formatNumber(multiplier)})",
           initialDescription: _descriptionController.text,
-          initialYield: RecipeUtils.formatNumber(scaledYield, decimalDigits: 2),
+          initialYield: RecipeUtils.formatNumber(scaledYield),
           initialYieldName: _yieldNameController.text,
           initialProfitMargin: _profitMarginController.text,
           initialPrice: _priceController.text,
@@ -807,7 +807,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
-                      '\$ ${RecipeUtils.formatNumber(_currentRevenue, decimalDigits: 2)}',
+                      '\$ ${RecipeUtils.formatNumber(_currentRevenue)}',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900,
                         color: theme.colorScheme.primary,
@@ -906,7 +906,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
         ),
         const SizedBox(width: 4),
         Text(
-          '\$ ${RecipeUtils.formatNumber(value, decimalDigits: 2)}',
+          '\$ ${RecipeUtils.formatNumber(value)}',
           style: theme.textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.onSurface,
@@ -1207,7 +1207,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '\$ ${RecipeUtils.formatNumber(data.totalCost, decimalDigits: 2)}',
+                  '\$ ${RecipeUtils.formatNumber(data.totalCost)}',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                     color: theme.colorScheme.onSurface,

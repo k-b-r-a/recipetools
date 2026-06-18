@@ -11,31 +11,36 @@ import 'screens/recipe_editor_screen.dart';
 import 'screens/ingredients_screen.dart';
 import 'screens/add_ingredient_screen.dart';
 import 'screens/tools_screen.dart';
+import 'screens/settings_screen.dart';
+import 'provider/settings_provider.dart';
 
 void main() {
   runApp(const ProviderScope(child: RecipetoolsApp()));
 }
 
-class RecipetoolsApp extends StatelessWidget {
+class RecipetoolsApp extends ConsumerWidget {
   const RecipetoolsApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.recipes_title,
-      locale: const Locale('es'),
+      locale: settings.locale,
+      themeMode: settings.themeMode,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: settings.seedColor,
           brightness: Brightness.light,
         ),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: settings.seedColor,
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
@@ -65,10 +70,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     const RecipeListScreen(),
     const IngredientsScreen(),
     const ToolsScreen(),
-    const PlaceholderScreen(
-      titleKey: 'config_button',
-      icon: Icons.settings_outlined,
-    ),
+    const SettingsScreen(),
   ];
 
   @override
@@ -628,7 +630,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                                     child: _buildStaticFinancialGridItem(
                                       context,
                                       l10n.total_cost,
-                                      '\$${RecipeUtils.formatNumber(financials.totalCost, decimalDigits: 2)}',
+                                      '\$${RecipeUtils.formatNumber(financials.totalCost)}',
                                       theme.colorScheme.errorContainer,
                                       theme.colorScheme.onErrorContainer,
                                     ),
@@ -638,7 +640,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                                     child: _buildStaticFinancialGridItem(
                                       context,
                                       l10n.total_profit,
-                                      '\$${RecipeUtils.formatNumber(financials.totalProfit, decimalDigits: 2)}',
+                                      '\$${RecipeUtils.formatNumber(financials.totalProfit)}',
                                       theme.colorScheme.primaryContainer,
                                       theme.colorScheme.onPrimaryContainer,
                                     ),
@@ -648,7 +650,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                                     child: _buildStaticFinancialGridItem(
                                       context,
                                       l10n.financial_price,
-                                      '\$${RecipeUtils.formatNumber(recipe.targetPricePerPortion, decimalDigits: 2)}',
+                                      '\$${RecipeUtils.formatNumber(recipe.targetPricePerPortion)}',
                                       theme.colorScheme.secondaryContainer,
                                       theme.colorScheme.onSecondaryContainer,
                                     ),
