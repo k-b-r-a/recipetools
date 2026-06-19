@@ -105,7 +105,33 @@ class AppLocalizationsIt extends AppLocalizations {
   String get add_button => 'Add';
 
   @override
+  String get edit_button => 'Edit';
+
+  @override
   String get delete_button => 'Delete';
+
+  @override
+  String get duplicate_button => 'Duplicate';
+
+  @override
+  String get delete_recipe_title => 'Delete Recipe';
+
+  @override
+  String get delete_recipe_message =>
+      'Are you sure you want to delete this recipe? This cannot be undone.';
+
+  @override
+  String get discard_button => 'Discard';
+
+  @override
+  String get unsaved_changes_title => 'Unsaved changes';
+
+  @override
+  String get unsaved_changes_body =>
+      'Do you want to save or discard this recipe?';
+
+  @override
+  String get new_ingredient_button => 'New Ingredient';
 
   @override
   String get config_button => 'Settings';
@@ -162,7 +188,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get assign_ingredients_tooltip => 'Assign ingredients to this step';
 
   @override
-  String get select_ingredient_recipe_title => 'Select Ingredient for Recipe';
+  String get select_ingredient_recipe_title => 'Select Ingredient';
 
   @override
   String assign_to_step_title(int number) {
@@ -198,7 +224,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String quantity,
     String unit,
   ) {
-    return '\$$price per $quantity $unit';
+    return '$price per $quantity $unit';
   }
 
   @override
@@ -391,4 +417,158 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_version => 'Version';
+
+  @override
+  String get settings_font_size => 'Font Size';
+
+  @override
+  String get settings_font_size_small => 'Small';
+
+  @override
+  String get settings_font_size_medium => 'Medium';
+
+  @override
+  String get settings_font_size_large => 'Large';
+
+  @override
+  String get settings_font_size_xlarge => 'X-Large';
+
+  @override
+  String get settings_styles_title => 'Styles';
+
+  @override
+  String get settings_about_app_title => 'About App';
+
+  @override
+  String get settings_haptic_feedback => 'Haptic Feedback';
+
+  @override
+  String get settings_haptic_feedback_desc =>
+      'Enable system vibrations on buttons and interactions';
+
+  @override
+  String get settings_styles_m3 => 'Use Material 3';
+
+  @override
+  String get settings_styles_m3_desc =>
+      'Enable modern Material 3 styling and components';
+
+  @override
+  String get settings_styles_icon_style => 'Icon Style';
+
+  @override
+  String get settings_styles_icon_style_outlined => 'Outlined';
+
+  @override
+  String get settings_styles_icon_style_rounded => 'Rounded';
+
+  @override
+  String get settings_styles_icon_style_sharp => 'Sharp';
+
+  @override
+  String get settings_styles_number_colors => 'Colorize Numbers';
+
+  @override
+  String get settings_styles_number_colors_desc =>
+      'Use semantic colors for financial metrics';
+
+  @override
+  String get settings_styles_animations => 'Animations';
+
+  @override
+  String get settings_styles_animations_desc =>
+      'Enable screen transitions and micro-animations';
+
+  @override
+  String get settings_styles_scroll => 'Scroll Behavior';
+
+  @override
+  String get settings_styles_scroll_default => 'Default';
+
+  @override
+  String get settings_styles_scroll_simple => 'Simple (Clamp)';
+
+  @override
+  String get settings_styles_scroll_stretch => 'Stretch';
+
+  @override
+  String get settings_styles_scroll_bounce => 'Bounce';
+
+  @override
+  String get settings_styles_left_hand => 'Left-Handed Mode';
+
+  @override
+  String get settings_styles_left_hand_desc =>
+      'Mirror controls for easier left-hand use';
+
+  @override
+  String get settings_styles_high_contrast => 'High Contrast Text';
+
+  @override
+  String get settings_styles_high_contrast_desc =>
+      'Force pure black/white text for readability';
+
+  @override
+  String get settings_styles_font => 'Font Family';
+
+  @override
+  String get settings_styles_font_system => 'Default';
+
+  @override
+  String get settings_styles_font_sans => 'Metropolis';
+
+  @override
+  String get settings_styles_font_serif => 'Nunito';
+
+  @override
+  String get settings_styles_font_mono => 'Inconsolata Monospace';
+
+  @override
+  String get settings_styles_font_amatic => 'Amatic SC';
+
+  @override
+  String get settings_styles_font_butler => 'Butler';
+
+  @override
+  String get settings_styles_font_caveat => 'Caveat';
+
+  @override
+  String get settings_styles_show_nav_labels => 'Show Navigation Labels';
+
+  @override
+  String get settings_styles_show_nav_labels_desc =>
+      'Display text labels below the navigation bar icons';
+
+  @override
+  String get settings_format_mass_unit => 'Default Mass Unit';
+
+  @override
+  String get settings_format_volume_unit => 'Default Volume Unit';
+
+  @override
+  String get settings_format_decimals_1 => '1 Place';
+
+  @override
+  String get settings_format_decimals_2 => '2 Places';
+
+  @override
+  String get settings_format_decimals_3 => '3 Places';
+
+  @override
+  String get settings_format_decimals_4 => '4 Places';
+
+  @override
+  String get settings_format_mass_g => 'Grams (g)';
+
+  @override
+  String get settings_format_mass_kg => 'Kilograms (kg)';
+
+  @override
+  String get settings_format_volume_ml => 'Milliliters (ml)';
+
+  @override
+  String get settings_format_volume_l => 'Liters (l)';
+
+  @override
+  String get settings_format_currency => 'Currency Symbol';
 }

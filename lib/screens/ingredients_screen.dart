@@ -6,6 +6,7 @@ import '../database/database.dart';
 import '../utils/recipe_utils.dart';
 import '../widgets/floating_pill_app_bar.dart';
 import 'add_ingredient_screen.dart';
+import '../provider/settings_provider.dart';
 
 class IngredientsScreen extends ConsumerStatefulWidget {
   const IngredientsScreen({super.key});
@@ -29,6 +30,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
     final ingredientsAsync = ref.watch(ingredientsStreamProvider);
     final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -98,7 +100,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                           title: Text(ingredient.name),
                           subtitle: Text(
                             l10n.ingredient_price_per_quantity(
-                              RecipeUtils.formatNumber(ingredient.cost),
+                              '${settings.currencySymbol}${RecipeUtils.formatNumber(ingredient.cost)}',
                               RecipeUtils.formatNumber(
                                 ingredient.quantityForCost,
                               ),

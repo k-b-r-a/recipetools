@@ -105,7 +105,33 @@ class AppLocalizationsEs extends AppLocalizations {
   String get add_button => 'Add';
 
   @override
+  String get edit_button => 'Editar';
+
+  @override
   String get delete_button => 'Eliminar';
+
+  @override
+  String get duplicate_button => 'Duplicar';
+
+  @override
+  String get delete_recipe_title => 'Eliminar Receta';
+
+  @override
+  String get delete_recipe_message =>
+      '¿Estás seguro de que deseas eliminar esta receta? Esta acción no se puede deshacer.';
+
+  @override
+  String get discard_button => 'Descartar';
+
+  @override
+  String get unsaved_changes_title => 'Cambios sin guardar';
+
+  @override
+  String get unsaved_changes_body =>
+      '¿Quieres guardar o descartar esta receta?';
+
+  @override
+  String get new_ingredient_button => 'Nuevo Ingrediente';
 
   @override
   String get config_button => 'Configuración';
@@ -163,8 +189,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get assign_ingredients_tooltip => 'Asignar ingredientes a este paso';
 
   @override
-  String get select_ingredient_recipe_title =>
-      'Seleccionar Ingrediente para la Receta';
+  String get select_ingredient_recipe_title => 'Seleccionar Ingrediente';
 
   @override
   String assign_to_step_title(int number) {
@@ -200,7 +225,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String quantity,
     String unit,
   ) {
-    return '\$$price por cada $quantity $unit';
+    return '$price por cada $quantity $unit';
   }
 
   @override
@@ -210,7 +235,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get search_ingredients_hint => 'Escribe para buscar ingredientes...';
 
   @override
-  String get no_ingredients_found => 'No se encontraron ingredientes.';
+  String get no_ingredients_found => 'Ingredientes no encontrados';
 
   @override
   String get no_recipes_found => 'No se encontraron recetas.';
@@ -394,4 +419,159 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_version => 'Versión';
+
+  @override
+  String get settings_font_size => 'Tamaño de Fuente';
+
+  @override
+  String get settings_font_size_small => 'Pequeño';
+
+  @override
+  String get settings_font_size_medium => 'Mediano';
+
+  @override
+  String get settings_font_size_large => 'Grande';
+
+  @override
+  String get settings_font_size_xlarge => 'Muy Grande';
+
+  @override
+  String get settings_styles_title => 'Estilos';
+
+  @override
+  String get settings_about_app_title => 'Acerca de la Aplicación';
+
+  @override
+  String get settings_haptic_feedback => 'Respuesta Háptica';
+
+  @override
+  String get settings_haptic_feedback_desc =>
+      'Activa vibraciones del sistema al interactuar con botones';
+
+  @override
+  String get settings_styles_m3 => 'Usar Material 3';
+
+  @override
+  String get settings_styles_m3_desc =>
+      'Activa el diseño y componentes modernos de Material 3';
+
+  @override
+  String get settings_styles_icon_style => 'Estilo de Iconos';
+
+  @override
+  String get settings_styles_icon_style_outlined => 'Contorno';
+
+  @override
+  String get settings_styles_icon_style_rounded => 'Redondeado';
+
+  @override
+  String get settings_styles_icon_style_sharp => 'Afilado';
+
+  @override
+  String get settings_styles_number_colors => 'Colorear Números';
+
+  @override
+  String get settings_styles_number_colors_desc =>
+      'Usa colores semánticos para métricas financieras';
+
+  @override
+  String get settings_styles_animations => 'Animaciones';
+
+  @override
+  String get settings_styles_animations_desc =>
+      'Activa transiciones de pantalla y microanimaciones';
+
+  @override
+  String get settings_styles_scroll => 'Física de Desplazamiento';
+
+  @override
+  String get settings_styles_scroll_default => 'Por Defecto';
+
+  @override
+  String get settings_styles_scroll_simple => 'Simple (Limitado)';
+
+  @override
+  String get settings_styles_scroll_stretch => 'Estirar';
+
+  @override
+  String get settings_styles_scroll_bounce => 'Rebotar';
+
+  @override
+  String get settings_styles_left_hand => 'Modo Zurdo';
+
+  @override
+  String get settings_styles_left_hand_desc =>
+      'Refleja controles para un uso más fácil con la mano izquierda';
+
+  @override
+  String get settings_styles_high_contrast => 'Texto de Alto Contraste';
+
+  @override
+  String get settings_styles_high_contrast_desc =>
+      'Fuerza texto negro/blanco puro para legibilidad';
+
+  @override
+  String get settings_styles_font => 'Familia de Fuente';
+
+  @override
+  String get settings_styles_font_system => 'Predeterminada';
+
+  @override
+  String get settings_styles_font_sans => 'Metropolis';
+
+  @override
+  String get settings_styles_font_serif => 'Nunito';
+
+  @override
+  String get settings_styles_font_mono => 'Inconsolata Monospace';
+
+  @override
+  String get settings_styles_font_amatic => 'Amatic SC';
+
+  @override
+  String get settings_styles_font_butler => 'Butler';
+
+  @override
+  String get settings_styles_font_caveat => 'Caveat';
+
+  @override
+  String get settings_styles_show_nav_labels =>
+      'Mostrar Etiquetas de Navegación';
+
+  @override
+  String get settings_styles_show_nav_labels_desc =>
+      'Muestra las etiquetas de texto debajo de los iconos de navegación';
+
+  @override
+  String get settings_format_mass_unit => 'Unidad de Masa Predeterminada';
+
+  @override
+  String get settings_format_volume_unit => 'Unidad de Volumen Predeterminada';
+
+  @override
+  String get settings_format_decimals_1 => '1 decimal';
+
+  @override
+  String get settings_format_decimals_2 => '2 decimales';
+
+  @override
+  String get settings_format_decimals_3 => '3 decimales';
+
+  @override
+  String get settings_format_decimals_4 => '4 decimales';
+
+  @override
+  String get settings_format_mass_g => 'Gramos (g)';
+
+  @override
+  String get settings_format_mass_kg => 'Kilogramos (kg)';
+
+  @override
+  String get settings_format_volume_ml => 'Mililitros (ml)';
+
+  @override
+  String get settings_format_volume_l => 'Litros (l)';
+
+  @override
+  String get settings_format_currency => 'Símbolo de Moneda';
 }

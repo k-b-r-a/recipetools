@@ -6,6 +6,7 @@ import '../provider/database_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/recipe_utils.dart';
 import 'compare_ingredients_screen.dart';
+import '../provider/settings_provider.dart';
 
 class AddIngredientScreen extends ConsumerStatefulWidget {
   final Ingredient? ingredient;
@@ -126,6 +127,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     final l10n = AppLocalizations.of(context)!;
     final unitsAsync = ref.watch(unitsProvider);
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -166,7 +168,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                             controller: _costController,
                             decoration: InputDecoration(
                               labelText: l10n.ingredient_cost,
-                              prefixText: '\$',
+                              prefixText: settings.currencySymbol,
                               border: const OutlineInputBorder(),
                             ),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
