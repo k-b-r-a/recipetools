@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../widgets/floating_pill_app_bar.dart';
 import '../provider/settings_provider.dart';
 import '../provider/database_provider.dart';
+import 'cloud_sync_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -48,6 +49,17 @@ class SettingsScreen extends ConsumerWidget {
                         iconColor: theme.colorScheme.primary,
                         bgColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
                         destination: const SettingsGeneralScreen(),
+                      ),
+                      const Divider(height: 1, indent: 20, endIndent: 20),
+                      _buildMenuTile(
+                        context,
+                        settings: settings,
+                        title: l10n.cloud_sync_title,
+                        subtitle: l10n.localeName == 'es' ? 'Respaldar y restaurar en Google Drive' : 'Back up and restore on Google Drive',
+                        icon: Icons.cloud_sync_outlined,
+                        iconColor: Colors.orange,
+                        bgColor: Colors.orange.withValues(alpha: 0.15),
+                        destination: const CloudSyncScreen(),
                       ),
                       const Divider(height: 1, indent: 20, endIndent: 20),
                       _buildMenuTile(

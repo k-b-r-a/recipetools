@@ -193,5 +193,22 @@
   "settings_format_mass_kg": "Kilogramos (kg)",
   "settings_format_volume_ml": "Mililitros (ml)",
   "settings_format_volume_l": "Litros (l)",
-  "settings_format_currency": "Símbolo de Moneda"
+  "settings_format_currency": "Símbolo de Moneda",
+  "cloud_sync_title": "Sincronización en la Nube",
+  "cloud_sync_desc": "Realiza copias de seguridad y restaura tus recetas e ingredientes de forma segura usando tu cuenta de Google Drive.",
+  "cloud_sync_connected": "Conectado a Google Drive",
+  "cloud_sync_disconnected": "Desconectado",
+  "cloud_sync_connect_btn": "Iniciar sesión con Google",
+  "cloud_sync_disconnect_btn": "Cerrar sesión",
+  "cloud_sync_backup_btn": "Respaldar ahora",
+  "cloud_sync_backups_header": "Historial de Copias",
+  "cloud_sync_no_backups": "No hay copias de seguridad.",
+  "cloud_sync_backup_confirm_title": "Crear Copia de Seguridad",
+  "cloud_sync_backup_confirm_desc": "Se subirá una copia de seguridad de tu base de datos actual a Google Drive.",
+  "cloud_sync_restore_confirm_title": "Restaurar Copia de Seguridad",
+  "cloud_sync_restore_confirm_desc": "Se sobrescribirán todas las recetas, pasos e ingredientes con la copia de seguridad seleccionada. Esta acción no se puede deshacer.",
+  "cloud_sync_delete_confirm_title": "Eliminar Copia de Seguridad",
+  "cloud_sync_delete_confirm_desc": "¿Estás seguro de que deseas eliminar permanentemente esta copia de seguridad de Google Drive?",
+  "cloud_sync_sandbox_badge": "Modo Sandbox",
+  "cloud_sync_sandbox_desc": "Ejecutándose en Escritorio. Las copias se guardan en un directorio local que simula a Google Drive."
 }
