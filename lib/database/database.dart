@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
 import 'tables.dart';
 import 'initialize_default_database.dart';
 import '../utils/recipe_utils.dart' hide uuid;
@@ -64,6 +65,38 @@ class AppDatabase extends _$AppDatabase {
       into(recipes).insert(recipe);
   Future<bool> updateRecipe(Recipe recipe) => update(recipes).replace(recipe);
   Future<int> deleteRecipe(Recipe recipe) => delete(recipes).delete(recipe);
+
+  Future<void> duplicateRecipe(String sourcePk, String newName) async {
+    final detail = await getRecipeDetail(sourcePk);
+    final newPk = const Uuid().v4();
+    await transaction(() async {
+      await insertRecipe(RecipesCompanion(
+        recipePk: Value(newPk),
+        name: Value(newName),
+        description: Value(detail.recipe.description ?? ''),
+        defaultYield: Value(detail.recipe.defaultYield),
+        yieldName: Value(detail.recipe.yieldName),
+        targetProfitMargin: Value(detail.recipe.targetProfitMargin),
+        targetPricePerPortion: Value(detail.recipe.targetPricePerPortion),
+        colour: Value(detail.recipe.colour),
+        dateTimeModified: Value(DateTime.now()),
+      ));
+      for (final ing in detail.ingredients) {
+        await into(recipeIngredients).insert(RecipeIngredientsCompanion.insert(
+          recipeFk: newPk,
+          ingredientFk: ing.ingredient.ingredientPk,
+          amountNeeded: ing.entry.amountNeeded,
+        ));
+      }
+      for (int i = 0; i < detail.steps.length; i++) {
+        await into(recipeSteps).insert(RecipeStepsCompanion.insert(
+          recipeFk: newPk,
+          stepNumber: detail.steps[i].stepNumber,
+          instruction: detail.steps[i].instruction,
+        ));
+      }
+    });
+  }
 
   // --- Ingredient Queries ---
   Future<List<Ingredient>> getAllIngredients() =>

@@ -10,13 +10,39 @@ const uuid = Uuid();
 class RecipeIngredientData {
   final Ingredient ingredient;
   final TextEditingController amountController;
+  final Unit? sourceUnit;
+  final Unit? targetUnit;
 
   RecipeIngredientData({
     required this.ingredient,
     String initialAmount = '0',
-  }) : amountController = TextEditingController(text: initialAmount);
+    this.sourceUnit,
+    this.targetUnit,
+  }) : amountController = TextEditingController(
+          text: _getInitialAmountText(initialAmount, sourceUnit, targetUnit),
+        );
 
-  double get amount => RecipeUtils.parseFormattedNumber(amountController.text);
+  static String _getInitialAmountText(String initialAmount, Unit? source, Unit? target) {
+    final parsed = RecipeUtils.parseFormattedNumber(initialAmount);
+    if (parsed == 0.0) return initialAmount;
+    if (source != null && target != null && source.category == target.category && source.category != null) {
+      final valueInBase = parsed * source.factorToBase;
+      final valueInTarget = valueInBase / target.factorToBase;
+      return RecipeUtils.formatNumber(valueInTarget);
+    }
+    return initialAmount;
+  }
+
+  double get amount {
+    final parsed = RecipeUtils.parseFormattedNumber(amountController.text);
+    if (sourceUnit != null && targetUnit != null && sourceUnit!.category == targetUnit!.category && sourceUnit!.category != null) {
+      // convert back to source unit
+      final valueInBase = parsed * targetUnit!.factorToBase;
+      return valueInBase / sourceUnit!.factorToBase;
+    }
+    return parsed;
+  }
+
   double get unitCost => ingredient.cost / ingredient.quantityForCost;
   double get totalCost => unitCost * amount;
 }
@@ -24,15 +50,12 @@ class RecipeIngredientData {
 class RecipeStepData {
   final TextEditingController instructionController;
   final FocusNode focusNode;
-  final List<Ingredient> taggedIngredients;
 
   RecipeStepData({
     String initialInstruction = '',
-    List<Ingredient>? taggedIngredients,
     TextEditingController? customController,
   })  : instructionController = customController ?? TextEditingController(text: initialInstruction),
-        focusNode = FocusNode(),
-        taggedIngredients = taggedIngredients ?? [];
+        focusNode = FocusNode();
 
   void dispose() {
     instructionController.dispose();
@@ -59,12 +82,15 @@ class RecipeFinancialSummary {
 }
 
 class RecipeUtils {
+  static int defaultDecimalDigits = 2;
+
   /// formats numbers with dots as thousands separator (e.g. 1.000)
-  static String formatNumber(num value, {int decimalDigits = 0}) {
+  static String formatNumber(num value, {int? decimalDigits}) {
+    final digits = decimalDigits ?? defaultDecimalDigits;
     final formatter = NumberFormat.decimalPattern('es_ES'); // uses dot for thousands
-    if (decimalDigits > 0) {
-      formatter.minimumFractionDigits = decimalDigits;
-      formatter.maximumFractionDigits = decimalDigits;
+    if (digits > 0) {
+      formatter.minimumFractionDigits = digits;
+      formatter.maximumFractionDigits = digits;
     }
     return formatter.format(value);
   }

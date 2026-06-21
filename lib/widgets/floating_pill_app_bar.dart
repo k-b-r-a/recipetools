@@ -38,7 +38,6 @@ Widget buildFloatingPillAppBar({
                 left: isCollapsed ? 60 : 0,
                 right: isCollapsed ? 60 : 0,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface.withValues(
                   alpha: isCollapsed ? 0.3 : 0.0,
@@ -52,19 +51,28 @@ Widget buildFloatingPillAppBar({
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: isCollapsed ? 5 : 0,
-                    sigmaY: isCollapsed ? 5 : 0,
-                  ),
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16 + (4 * percentage.clamp(0, 1)),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (isCollapsed)
+                      Positioned.fill(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                          child: const SizedBox.shrink(),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16 + (4 * percentage.clamp(0, 1)),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),

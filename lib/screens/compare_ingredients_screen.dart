@@ -4,6 +4,7 @@ import '../database/database.dart';
 import '../provider/database_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/recipe_utils.dart';
+import '../provider/settings_provider.dart';
 
 class CompareIngredientsScreen extends ConsumerStatefulWidget {
   final Ingredient ingredient1;
@@ -83,6 +84,8 @@ class _CompareIngredientsScreenState
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final unitsAsync = ref.watch(unitsProvider);
+    final settings = ref.watch(settingsProvider);
+    final currency = settings.currencySymbol;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.compare_button)),
@@ -141,9 +144,10 @@ class _CompareIngredientsScreenState
                               child: _IngredientSimpleCard(
                                 ingredient: widget.ingredient1,
                                 unit: unit1,
+                                currencySymbol: currency,
                                 diffText: price1 > price2AtSameQuantity
-                                    ? '+\$$formattedDiff MORE'
-                                    : '-\$$formattedDiff LESS',
+                                    ? '+$currency$formattedDiff MORE'
+                                    : '-$currency$formattedDiff LESS',
                                 diffColor: price1 > price2AtSameQuantity
                                     ? Colors.red
                                     : Colors.green,
@@ -165,10 +169,11 @@ class _CompareIngredientsScreenState
                               child: _IngredientSimpleCard(
                                 ingredient: widget.ingredient2,
                                 unit: unit2,
+                                currencySymbol: currency,
                                 // inverse comparison for the second card
                                 diffText: price2AtSameQuantity > price1
-                                    ? '+\$$formattedDiff MORE'
-                                    : '-\$$formattedDiff LESS',
+                                    ? '+$currency$formattedDiff MORE'
+                                    : '-$currency$formattedDiff LESS',
                                 diffColor: price2AtSameQuantity > price1
                                     ? Colors.red
                                     : Colors.green,
@@ -265,6 +270,7 @@ class _IngredientSimpleCard extends StatelessWidget {
   final bool isSelected;
   final bool isAnySelected;
   final VoidCallback onSelect;
+  final String currencySymbol;
 
   const _IngredientSimpleCard({
     required this.ingredient,
@@ -275,6 +281,7 @@ class _IngredientSimpleCard extends StatelessWidget {
     required this.isSelected,
     required this.isAnySelected,
     required this.onSelect,
+    required this.currencySymbol,
   });
 
   @override
@@ -332,7 +339,7 @@ class _IngredientSimpleCard extends StatelessWidget {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
-                      '\$${RecipeUtils.formatNumber(ingredient.cost)}',
+                      '$currencySymbol${RecipeUtils.formatNumber(ingredient.cost)}',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                         color: theme.colorScheme.onSurface,

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/floating_pill_app_bar.dart';
+import '../provider/settings_provider.dart';
 import 'rule_of_three_screen.dart';
 import 'unit_converter_screen.dart';
 
-class ToolsScreen extends StatefulWidget {
+class ToolsScreen extends ConsumerStatefulWidget {
   const ToolsScreen({super.key});
 
   @override
-  State<ToolsScreen> createState() => _ToolsScreenState();
+  ConsumerState<ToolsScreen> createState() => _ToolsScreenState();
 }
 
-class _ToolsScreenState extends State<ToolsScreen> {
+class _ToolsScreenState extends ConsumerState<ToolsScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -23,6 +25,7 @@ class _ToolsScreenState extends State<ToolsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -36,11 +39,11 @@ class _ToolsScreenState extends State<ToolsScreen> {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 16.0),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 1.0,
+                childAspectRatio: 1.0 / settings.fontSizeScale,
               ),
               delegate: SliverChildListDelegate([
                 _buildToolGridCard(

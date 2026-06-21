@@ -398,11 +398,59 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get add_button;
 
+  /// No description provided for @edit_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit_button;
+
   /// No description provided for @delete_button.
   ///
   /// In en, this message translates to:
   /// **'Delete'**
   String get delete_button;
+
+  /// No description provided for @duplicate_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get duplicate_button;
+
+  /// No description provided for @delete_recipe_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Recipe'**
+  String get delete_recipe_title;
+
+  /// No description provided for @delete_recipe_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this recipe? This cannot be undone.'**
+  String get delete_recipe_message;
+
+  /// No description provided for @discard_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discard_button;
+
+  /// No description provided for @unsaved_changes_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get unsaved_changes_title;
+
+  /// No description provided for @unsaved_changes_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to save or discard this recipe?'**
+  String get unsaved_changes_body;
+
+  /// No description provided for @new_ingredient_button.
+  ///
+  /// In en, this message translates to:
+  /// **'New Ingredient'**
+  String get new_ingredient_button;
 
   /// No description provided for @config_button.
   ///
@@ -515,7 +563,7 @@ abstract class AppLocalizations {
   /// No description provided for @select_ingredient_recipe_title.
   ///
   /// In en, this message translates to:
-  /// **'Select Ingredient for Recipe'**
+  /// **'Select Ingredient'**
   String get select_ingredient_recipe_title;
 
   /// No description provided for @assign_to_step_title.
@@ -569,7 +617,7 @@ abstract class AppLocalizations {
   /// No description provided for @ingredient_price_per_quantity.
   ///
   /// In en, this message translates to:
-  /// **'\${price} per {quantity} {unit}'**
+  /// **'{price} per {quantity} {unit}'**
   String ingredient_price_per_quantity(
     String price,
     String quantity,
@@ -821,6 +869,414 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Count / Quantity'**
   String get unit_category_count;
+
+  /// No description provided for @settings_general.
+  ///
+  /// In en, this message translates to:
+  /// **'General Settings'**
+  String get settings_general;
+
+  /// No description provided for @settings_reset_db.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Database'**
+  String get settings_reset_db;
+
+  /// No description provided for @settings_reset_db_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all recipes and ingredients. This cannot be undone.'**
+  String get settings_reset_db_desc;
+
+  /// No description provided for @settings_reset_db_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Database?'**
+  String get settings_reset_db_confirm;
+
+  /// No description provided for @settings_reset_db_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete all recipes, ingredients, and steps? This action is permanent.'**
+  String get settings_reset_db_warning;
+
+  /// No description provided for @settings_reset_db_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Database reset successfully.'**
+  String get settings_reset_db_success;
+
+  /// No description provided for @settings_theme_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme & Style'**
+  String get settings_theme_title;
+
+  /// No description provided for @settings_theme_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Mode'**
+  String get settings_theme_mode;
+
+  /// No description provided for @settings_theme_color.
+  ///
+  /// In en, this message translates to:
+  /// **'Accent Color'**
+  String get settings_theme_color;
+
+  /// No description provided for @settings_theme_system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settings_theme_system;
+
+  /// No description provided for @settings_theme_light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settings_theme_light;
+
+  /// No description provided for @settings_theme_dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settings_theme_dark;
+
+  /// No description provided for @settings_locale_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Localization & Formatting'**
+  String get settings_locale_title;
+
+  /// No description provided for @settings_locale_lang.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settings_locale_lang;
+
+  /// No description provided for @settings_locale_es.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get settings_locale_es;
+
+  /// No description provided for @settings_locale_en.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settings_locale_en;
+
+  /// No description provided for @settings_format_decimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal Places'**
+  String get settings_format_decimals;
+
+  /// No description provided for @settings_about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settings_about;
+
+  /// No description provided for @settings_version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settings_version;
+
+  /// No description provided for @settings_font_size.
+  ///
+  /// In en, this message translates to:
+  /// **'Font Size'**
+  String get settings_font_size;
+
+  /// No description provided for @settings_font_size_small.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get settings_font_size_small;
+
+  /// No description provided for @settings_font_size_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get settings_font_size_medium;
+
+  /// No description provided for @settings_font_size_large.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get settings_font_size_large;
+
+  /// No description provided for @settings_font_size_xlarge.
+  ///
+  /// In en, this message translates to:
+  /// **'X-Large'**
+  String get settings_font_size_xlarge;
+
+  /// No description provided for @settings_styles_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Styles'**
+  String get settings_styles_title;
+
+  /// No description provided for @settings_about_app_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About App'**
+  String get settings_about_app_title;
+
+  /// No description provided for @settings_haptic_feedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Haptic Feedback'**
+  String get settings_haptic_feedback;
+
+  /// No description provided for @settings_haptic_feedback_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable system vibrations on buttons and interactions'**
+  String get settings_haptic_feedback_desc;
+
+  /// No description provided for @settings_styles_m3.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Material 3'**
+  String get settings_styles_m3;
+
+  /// No description provided for @settings_styles_m3_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable modern Material 3 styling and components'**
+  String get settings_styles_m3_desc;
+
+  /// No description provided for @settings_styles_icon_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon Style'**
+  String get settings_styles_icon_style;
+
+  /// No description provided for @settings_styles_icon_style_outlined.
+  ///
+  /// In en, this message translates to:
+  /// **'Outlined'**
+  String get settings_styles_icon_style_outlined;
+
+  /// No description provided for @settings_styles_icon_style_rounded.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounded'**
+  String get settings_styles_icon_style_rounded;
+
+  /// No description provided for @settings_styles_icon_style_sharp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharp'**
+  String get settings_styles_icon_style_sharp;
+
+  /// No description provided for @settings_styles_number_colors.
+  ///
+  /// In en, this message translates to:
+  /// **'Colorize Numbers'**
+  String get settings_styles_number_colors;
+
+  /// No description provided for @settings_styles_number_colors_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Use semantic colors for financial metrics'**
+  String get settings_styles_number_colors_desc;
+
+  /// No description provided for @settings_styles_animations.
+  ///
+  /// In en, this message translates to:
+  /// **'Animations'**
+  String get settings_styles_animations;
+
+  /// No description provided for @settings_styles_animations_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable screen transitions and micro-animations'**
+  String get settings_styles_animations_desc;
+
+  /// No description provided for @settings_styles_scroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll Behavior'**
+  String get settings_styles_scroll;
+
+  /// No description provided for @settings_styles_scroll_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settings_styles_scroll_default;
+
+  /// No description provided for @settings_styles_scroll_simple.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple (Clamp)'**
+  String get settings_styles_scroll_simple;
+
+  /// No description provided for @settings_styles_scroll_stretch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stretch'**
+  String get settings_styles_scroll_stretch;
+
+  /// No description provided for @settings_styles_scroll_bounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounce'**
+  String get settings_styles_scroll_bounce;
+
+  /// No description provided for @settings_styles_left_hand.
+  ///
+  /// In en, this message translates to:
+  /// **'Left-Handed Mode'**
+  String get settings_styles_left_hand;
+
+  /// No description provided for @settings_styles_left_hand_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirror controls for easier left-hand use'**
+  String get settings_styles_left_hand_desc;
+
+  /// No description provided for @settings_styles_high_contrast.
+  ///
+  /// In en, this message translates to:
+  /// **'High Contrast Text'**
+  String get settings_styles_high_contrast;
+
+  /// No description provided for @settings_styles_high_contrast_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Force pure black/white text for readability'**
+  String get settings_styles_high_contrast_desc;
+
+  /// No description provided for @settings_styles_font.
+  ///
+  /// In en, this message translates to:
+  /// **'Font Family'**
+  String get settings_styles_font;
+
+  /// No description provided for @settings_styles_font_system.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settings_styles_font_system;
+
+  /// No description provided for @settings_styles_font_sans.
+  ///
+  /// In en, this message translates to:
+  /// **'Metropolis'**
+  String get settings_styles_font_sans;
+
+  /// No description provided for @settings_styles_font_serif.
+  ///
+  /// In en, this message translates to:
+  /// **'Nunito'**
+  String get settings_styles_font_serif;
+
+  /// No description provided for @settings_styles_font_mono.
+  ///
+  /// In en, this message translates to:
+  /// **'Inconsolata Monospace'**
+  String get settings_styles_font_mono;
+
+  /// No description provided for @settings_styles_font_amatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Amatic SC'**
+  String get settings_styles_font_amatic;
+
+  /// No description provided for @settings_styles_font_butler.
+  ///
+  /// In en, this message translates to:
+  /// **'Butler'**
+  String get settings_styles_font_butler;
+
+  /// No description provided for @settings_styles_font_caveat.
+  ///
+  /// In en, this message translates to:
+  /// **'Caveat'**
+  String get settings_styles_font_caveat;
+
+  /// No description provided for @settings_styles_show_nav_labels.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Navigation Labels'**
+  String get settings_styles_show_nav_labels;
+
+  /// No description provided for @settings_styles_show_nav_labels_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Display text labels below the navigation bar icons'**
+  String get settings_styles_show_nav_labels_desc;
+
+  /// No description provided for @settings_format_mass_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Mass Unit'**
+  String get settings_format_mass_unit;
+
+  /// No description provided for @settings_format_volume_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Volume Unit'**
+  String get settings_format_volume_unit;
+
+  /// No description provided for @settings_format_decimals_1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 Place'**
+  String get settings_format_decimals_1;
+
+  /// No description provided for @settings_format_decimals_2.
+  ///
+  /// In en, this message translates to:
+  /// **'2 Places'**
+  String get settings_format_decimals_2;
+
+  /// No description provided for @settings_format_decimals_3.
+  ///
+  /// In en, this message translates to:
+  /// **'3 Places'**
+  String get settings_format_decimals_3;
+
+  /// No description provided for @settings_format_decimals_4.
+  ///
+  /// In en, this message translates to:
+  /// **'4 Places'**
+  String get settings_format_decimals_4;
+
+  /// No description provided for @settings_format_mass_g.
+  ///
+  /// In en, this message translates to:
+  /// **'Grams (g)'**
+  String get settings_format_mass_g;
+
+  /// No description provided for @settings_format_mass_kg.
+  ///
+  /// In en, this message translates to:
+  /// **'Kilograms (kg)'**
+  String get settings_format_mass_kg;
+
+  /// No description provided for @settings_format_volume_ml.
+  ///
+  /// In en, this message translates to:
+  /// **'Milliliters (ml)'**
+  String get settings_format_volume_ml;
+
+  /// No description provided for @settings_format_volume_l.
+  ///
+  /// In en, this message translates to:
+  /// **'Liters (l)'**
+  String get settings_format_volume_l;
+
+  /// No description provided for @settings_format_currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency Symbol'**
+  String get settings_format_currency;
 }
 
 class _AppLocalizationsDelegate

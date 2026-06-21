@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'l10n/app_localizations.dart';
 import 'provider/database_provider.dart';
+import 'database/database.dart';
 import 'widgets/floating_pill_app_bar.dart';
 import 'utils/recipe_utils.dart';
 
@@ -11,35 +12,150 @@ import 'screens/recipe_editor_screen.dart';
 import 'screens/ingredients_screen.dart';
 import 'screens/add_ingredient_screen.dart';
 import 'screens/tools_screen.dart';
+import 'screens/settings_screen.dart';
+import 'provider/settings_provider.dart';
 
-void main() {
-  runApp(const ProviderScope(child: RecipetoolsApp()));
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final sharedPreferences = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+      ],
+      child: const RecipetoolsApp(),
+    ),
+  );
 }
 
-class RecipetoolsApp extends StatelessWidget {
+class NoTransitionsBuilder extends PageTransitionsBuilder {
+  const NoTransitionsBuilder();
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
+  }
+}
+
+class CustomScrollBehavior extends MaterialScrollBehavior {
+  final String physicsType;
+  const CustomScrollBehavior(this.physicsType);
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    switch (physicsType) {
+      case 'bounce':
+        return const BouncingScrollPhysics();
+      case 'default':
+      default:
+        return super.getScrollPhysics(context);
+    }
+  }
+}
+
+class RecipetoolsApp extends ConsumerWidget {
   const RecipetoolsApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
+    ThemeData buildTheme(Brightness brightness) {
+      var colorScheme = ColorScheme.fromSeed(
+        seedColor: settings.seedColor,
+        brightness: brightness,
+      );
+
+      if (settings.highContrastText) {
+        final isDark = brightness == Brightness.dark;
+        final textColor = isDark ? Colors.white : Colors.black;
+        colorScheme = colorScheme.copyWith(
+          onSurface: textColor,
+          onSurfaceVariant: textColor,
+          primary: isDark ? Colors.white : Colors.black,
+          secondary: isDark ? Colors.white : Colors.black,
+          onPrimary: isDark ? Colors.black : Colors.white,
+          onSecondary: isDark ? Colors.black : Colors.white,
+          onError: isDark ? Colors.black : Colors.white,
+        );
+      }
+
+      final baseTheme = ThemeData(
+        colorScheme: colorScheme,
+        useMaterial3: true,
+        fontFamily: settings.fontFamily == 'sans'
+            ? 'Metropolis'
+            : settings.fontFamily == 'butler'
+                ? 'Butler'
+                : null,
+        pageTransitionsTheme: settings.animationsEnabled
+            ? const PageTransitionsTheme()
+            : const PageTransitionsTheme(
+                builders: {
+                  TargetPlatform.android: NoTransitionsBuilder(),
+                  TargetPlatform.iOS: NoTransitionsBuilder(),
+                  TargetPlatform.macOS: NoTransitionsBuilder(),
+                  TargetPlatform.windows: NoTransitionsBuilder(),
+                  TargetPlatform.linux: NoTransitionsBuilder(),
+                  TargetPlatform.fuchsia: NoTransitionsBuilder(),
+                },
+              ),
+      );
+
+      var textTheme = baseTheme.textTheme;
+      if (settings.fontFamily == 'sans') {
+        textTheme = textTheme.apply(fontFamily: 'Metropolis');
+      } else if (settings.fontFamily == 'butler') {
+        textTheme = textTheme.apply(fontFamily: 'Butler');
+      } else if (settings.fontFamily == 'serif') {
+        textTheme = GoogleFonts.nunitoTextTheme(textTheme);
+      } else if (settings.fontFamily == 'mono') {
+        textTheme = GoogleFonts.inconsolataTextTheme(textTheme);
+      } else if (settings.fontFamily == 'amatic') {
+        textTheme = GoogleFonts.amaticScTextTheme(textTheme);
+      } else if (settings.fontFamily == 'caveat') {
+        textTheme = GoogleFonts.caveatTextTheme(textTheme);
+      }
+
+      if (settings.highContrastText) {
+        final textColor = brightness == Brightness.dark ? Colors.white : Colors.black;
+        textTheme = textTheme.apply(
+          bodyColor: textColor,
+          displayColor: textColor,
+          decorationColor: textColor,
+        );
+      }
+
+      return baseTheme.copyWith(
+        textTheme: textTheme,
+      );
+    }
+
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.recipes_title,
-      locale: const Locale('es'),
+      locale: settings.locale,
+      themeMode: settings.themeMode,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: buildTheme(Brightness.light),
+      darkTheme: buildTheme(Brightness.dark),
+      scrollBehavior: CustomScrollBehavior(settings.scrollBehavior),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(settings.fontSizeScale)),
+          child: child!,
+        );
+      },
       home: const MainNavigationScreen(),
     );
   }
@@ -65,10 +181,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     const RecipeListScreen(),
     const IngredientsScreen(),
     const ToolsScreen(),
-    const PlaceholderScreen(
-      titleKey: 'config_button',
-      icon: Icons.settings_outlined,
-    ),
+    const SettingsScreen(),
   ];
 
   @override
@@ -87,6 +200,10 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final double baseHeight = settings.showNavBarLabels ? 70.0 : 56.0;
+    final double navBarHeight =
+        baseHeight * (settings.fontSizeScale > 1.0 ? settings.fontSizeScale : 1.0);
 
     return Scaffold(
       extendBody: true,
@@ -102,8 +219,10 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
         },
         children: _screens,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _buildFab(context),
+      floatingActionButtonLocation: settings.leftHandedMode
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: _buildFab(context, settings),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
@@ -134,7 +253,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                     indicatorShape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    height: 70,
+                    height: navBarHeight,
                     labelTextStyle: WidgetStateProperty.all(
                       const TextStyle(
                         fontSize: 11,
@@ -143,12 +262,13 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                     ),
                   ),
                   child: NavigationBar(
-                    height: 70,
+                    height: navBarHeight,
                     elevation: 0,
                     backgroundColor: Colors.transparent,
                     selectedIndex: _currentIndex,
-                    labelBehavior:
-                        NavigationDestinationLabelBehavior.alwaysShow,
+                    labelBehavior: settings.showNavBarLabels
+                        ? NavigationDestinationLabelBehavior.alwaysShow
+                        : NavigationDestinationLabelBehavior.alwaysHide,
                     onDestinationSelected: (index) {
                       _pageController.animateToPage(
                         index,
@@ -158,23 +278,23 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                     },
                     destinations: [
                       NavigationDestination(
-                        icon: const Icon(Icons.home_outlined, size: 22),
-                        selectedIcon: const Icon(Icons.home, size: 22),
+                        icon: Icon(getNavBarIcon(0, false, settings.iconStyle), size: 22),
+                        selectedIcon: Icon(getNavBarIcon(0, true, settings.iconStyle), size: 22),
                         label: l10n.recipes_title,
                       ),
                       NavigationDestination(
-                        icon: const Icon(Icons.inventory_2_outlined, size: 22),
-                        selectedIcon: const Icon(Icons.inventory_2, size: 22),
+                        icon: Icon(getNavBarIcon(1, false, settings.iconStyle), size: 22),
+                        selectedIcon: Icon(getNavBarIcon(1, true, settings.iconStyle), size: 22),
                         label: l10n.ingredients_title,
                       ),
                       NavigationDestination(
-                        icon: const Icon(Icons.handyman_outlined, size: 22),
-                        selectedIcon: const Icon(Icons.handyman, size: 22),
+                        icon: Icon(getNavBarIcon(2, false, settings.iconStyle), size: 22),
+                        selectedIcon: Icon(getNavBarIcon(2, true, settings.iconStyle), size: 22),
                         label: l10n.tools_title,
                       ),
                       NavigationDestination(
-                        icon: const Icon(Icons.settings_outlined, size: 22),
-                        selectedIcon: const Icon(Icons.settings, size: 22),
+                        icon: Icon(getNavBarIcon(3, false, settings.iconStyle), size: 22),
+                        selectedIcon: Icon(getNavBarIcon(3, true, settings.iconStyle), size: 22),
                         label: l10n.config_button,
                       ),
                     ],
@@ -188,10 +308,11 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     );
   }
 
-  Widget? _buildFab(BuildContext context) {
+  Widget? _buildFab(BuildContext context, SettingsState settings) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isLeft = settings.leftHandedMode;
 
     // determine visibility based on current screen
     final bool showFab = _currentIndex == 0 || _currentIndex == 1;
@@ -203,13 +324,14 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       child: IgnorePointer(
         ignoring: !showFab,
         child: Stack(
-          alignment: Alignment.bottomRight,
+          alignment: isLeft ? Alignment.bottomLeft : Alignment.bottomRight,
           children: [
             // search bar - expands horizontally from the left of add button
             AnimatedPositioned(
               duration: const Duration(milliseconds: 400),
               curve: Curves.fastOutSlowIn,
-              right: _isSearching ? 0 : 56 + 12,
+              right: isLeft ? null : (_isSearching ? 0 : 56 + 12),
+              left: isLeft ? (_isSearching ? 0 : 56 + 12) : null,
               bottom: 0, // aligned at the same floor as the 56px add button
               child: AnimatedScale(
                 scale: showFab ? 1.0 : 0.0,
@@ -342,11 +464,12 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
               ),
             ),
 
-            // add button - jumps up when searching, stays at the right
+            // add button - jumps up when searching, stays at the right/left
             AnimatedPositioned(
               duration: const Duration(milliseconds: 400),
               curve: Curves.fastOutSlowIn,
-              right: 0,
+              right: isLeft ? null : 0,
+              left: isLeft ? 0 : null,
               bottom: _isSearching ? 44 + 12 : 0, // moves up above search bar
               child: AnimatedScale(
                 scale: showFab ? 1.0 : 0.0,
@@ -473,6 +596,7 @@ class RecipeListScreen extends ConsumerStatefulWidget {
 
 class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
   final ScrollController _scrollController = ScrollController();
+  String? _expandedRecipeId;
 
   @override
   void dispose() {
@@ -486,6 +610,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     final recipesAsync = ref.watch(recipesWithFinancialsStreamProvider);
     final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
     final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -536,6 +661,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                     final item = filteredRecipes[index];
                     final recipe = item.recipe;
                     final financials = item.financials;
+                    final isExpanded = _expandedRecipeId == recipe.recipePk;
 
                     return Card(
                       margin: const EdgeInsets.symmetric(
@@ -554,12 +680,23 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  RecipeEditorScreen(recipeId: recipe.recipePk),
-                            ),
-                          );
+                          if (isExpanded) {
+                            setState(() {
+                              _expandedRecipeId = null;
+                            });
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    RecipeEditorScreen(recipeId: recipe.recipePk),
+                              ),
+                            );
+                          }
+                        },
+                        onLongPress: () {
+                          setState(() {
+                            _expandedRecipeId = isExpanded ? null : recipe.recipePk;
+                          });
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -627,8 +764,9 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                                   Expanded(
                                     child: _buildStaticFinancialGridItem(
                                       context,
+                                      settings,
                                       l10n.total_cost,
-                                      '\$${RecipeUtils.formatNumber(financials.totalCost, decimalDigits: 2)}',
+                                      '${settings.currencySymbol}${RecipeUtils.formatNumber(financials.totalCost)}',
                                       theme.colorScheme.errorContainer,
                                       theme.colorScheme.onErrorContainer,
                                     ),
@@ -637,8 +775,9 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                                   Expanded(
                                     child: _buildStaticFinancialGridItem(
                                       context,
+                                      settings,
                                       l10n.total_profit,
-                                      '\$${RecipeUtils.formatNumber(financials.totalProfit, decimalDigits: 2)}',
+                                      '${settings.currencySymbol}${RecipeUtils.formatNumber(financials.totalProfit)}',
                                       theme.colorScheme.primaryContainer,
                                       theme.colorScheme.onPrimaryContainer,
                                     ),
@@ -647,13 +786,78 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                                   Expanded(
                                     child: _buildStaticFinancialGridItem(
                                       context,
+                                      settings,
                                       l10n.financial_price,
-                                      '\$${RecipeUtils.formatNumber(recipe.targetPricePerPortion, decimalDigits: 2)}',
+                                      '${settings.currencySymbol}${RecipeUtils.formatNumber(recipe.targetPricePerPortion)}',
                                       theme.colorScheme.secondaryContainer,
                                       theme.colorScheme.onSecondaryContainer,
                                     ),
                                   ),
                                 ],
+                              ),
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.easeInOut,
+                                child: isExpanded
+                                    ? Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(height: 12),
+                                          Divider(
+                                            height: 1,
+                                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              _buildMenuButton(
+                                                context: context,
+                                                icon: Icons.edit_outlined,
+                                                label: l10n.edit_button,
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          RecipeEditorScreen(recipeId: recipe.recipePk),
+                                                    ),
+                                                  ).then((_) {
+                                                    setState(() {
+                                                      _expandedRecipeId = null;
+                                                    });
+                                                  });
+                                                },
+                                              ),
+                                              _buildMenuButton(
+                                                context: context,
+                                                icon: Icons.scale_outlined,
+                                                label: l10n.scale_button,
+                                                onTap: () {
+                                                  _showScalePickerFromList(context, recipe);
+                                                },
+                                              ),
+                                              _buildMenuButton(
+                                                context: context,
+                                                icon: Icons.copy_rounded,
+                                                label: l10n.duplicate_button,
+                                                onTap: () {
+                                                  _duplicateRecipeFromList(context, recipe);
+                                                },
+                                              ),
+                                              _buildMenuButton(
+                                                context: context,
+                                                icon: Icons.delete_outline_rounded,
+                                                label: l10n.delete_button,
+                                                color: theme.colorScheme.error,
+                                                onTap: () {
+                                                  _deleteRecipeFromList(context, recipe);
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      )
+                                    : const SizedBox.shrink(),
                               ),
                             ],
                           ),
@@ -678,12 +882,14 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
   Widget _buildStaticFinancialGridItem(
     BuildContext context,
+    SettingsState settings,
     String label,
     String value,
     Color bgColor,
     Color textColor,
   ) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     String shortLabel = label;
 
     if (label.toLowerCase().contains('cost')) {
@@ -696,10 +902,17 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
       shortLabel = l10n.short_price_portion;
     }
 
+    final effectiveBgColor = settings.numberColorsEnabled
+        ? bgColor
+        : theme.colorScheme.surfaceContainerHighest;
+    final effectiveTextColor = settings.numberColorsEnabled
+        ? textColor
+        : theme.colorScheme.onSurfaceVariant;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       decoration: BoxDecoration(
-        color: bgColor.withValues(alpha: 0.7),
+        color: effectiveBgColor.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -712,7 +925,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               fontSize: 8,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.5,
-              color: textColor.withValues(alpha: 0.8),
+              color: effectiveTextColor.withValues(alpha: 0.8),
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -726,7 +939,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
-                color: textColor,
+                color: effectiveTextColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -735,4 +948,284 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
       ),
     );
   }
+
+  // helper methods for context menu in expanded box
+  Widget _buildMenuButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final theme = Theme.of(context);
+    final buttonColor = color ?? theme.colorScheme.primary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: buttonColor,
+              size: 22,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: buttonColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _duplicateRecipeFromList(BuildContext context, Recipe recipe) async {
+    final l10n = AppLocalizations.of(context)!;
+    final db = ref.read(databaseProvider);
+    final textController = TextEditingController(text: "${recipe.name} (${l10n.duplicate_button})");
+    
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.duplicate_button),
+        content: TextField(
+          controller: textController,
+          decoration: InputDecoration(
+            labelText: l10n.recipe_name,
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.discard_button),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(textController.text.trim()),
+            child: Text(l10n.save_button),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null && newName.isNotEmpty) {
+      try {
+        await db.duplicateRecipe(recipe.recipePk, newName);
+        setState(() {
+          _expandedRecipeId = null;
+        });
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error: $e")),
+          );
+        }
+      }
+    }
+  }
+
+  void _deleteRecipeFromList(BuildContext context, Recipe recipe) async {
+    final l10n = AppLocalizations.of(context)!;
+    final db = ref.read(databaseProvider);
+    
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.delete_recipe_title),
+        content: Text(l10n.delete_recipe_message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.discard_button),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete_button),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await db.deleteRecipe(recipe);
+        setState(() {
+          _expandedRecipeId = null;
+        });
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error: $e")),
+          );
+        }
+      }
+    }
+  }
+
+  void _showScalePickerFromList(BuildContext context, Recipe recipe) {
+    final l10n = AppLocalizations.of(context)!;
+    final customController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.scale_button),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [0.5, 2.0, 3.0, 4.0, 5.0].map((multiplier) {
+                return OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _openTemporaryScaledRecipeFromList(context, recipe, multiplier);
+                  },
+                  child: Text('x${RecipeUtils.formatNumber(multiplier)}'),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: customController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l10n.ingredient_quantity,
+                hintText: 'e.g. 1.5',
+                border: const OutlineInputBorder(),
+                suffixText: 'x',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.discard_button),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final val = double.tryParse(customController.text.replaceAll(',', '.'));
+              if (val != null && val > 0) {
+                Navigator.of(context).pop();
+                _openTemporaryScaledRecipeFromList(context, recipe, val);
+              }
+            },
+            child: Text(l10n.save_button),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openTemporaryScaledRecipeFromList(BuildContext context, Recipe recipe, double multiplier) async {
+    final db = ref.read(databaseProvider);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+    
+    try {
+      final detail = await db.getRecipeDetail(recipe.recipePk);
+      
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // dismiss loading indicator
+      
+      final scaledYield = detail.recipe.defaultYield * multiplier;
+      
+      final initialIngs = detail.ingredients.map((ingData) {
+        return InitialIngredientInput(
+          ingredient: ingData.ingredient,
+          amount: ingData.entry.amountNeeded * multiplier,
+        );
+      }).toList();
+
+      final initialSteps = detail.steps.map((stepData) {
+        return InitialStepInput(
+          instruction: stepData.instruction,
+        );
+      }).toList();
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => RecipeEditorScreen(
+            isTemporary: true,
+            multiplier: multiplier,
+            initialName: "${recipe.name} (x${RecipeUtils.formatNumber(multiplier)})",
+            initialDescription: recipe.description,
+            initialYield: RecipeUtils.formatNumber(scaledYield),
+            initialYieldName: recipe.yieldName,
+            initialProfitMargin: RecipeUtils.formatNumber(recipe.targetProfitMargin * 100),
+            initialPrice: RecipeUtils.formatNumber(recipe.targetPricePerPortion),
+            initialIngredients: initialIngs,
+            initialSteps: initialSteps,
+          ),
+        ),
+      ).then((_) {
+        setState(() {
+          _expandedRecipeId = null;
+        });
+      });
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // dismiss loading indicator
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error scaling recipe: $e")),
+        );
+      }
+    }
+  }
+}
+
+IconData getNavBarIcon(int index, bool isSelected, String iconStyle) {
+  if (isSelected) {
+    switch (index) {
+      case 0: return Icons.home;
+      case 1: return Icons.inventory_2;
+      case 2: return Icons.handyman;
+      case 3: return Icons.settings;
+    }
+  }
+  
+  if (iconStyle == 'rounded') {
+    switch (index) {
+      case 0: return Icons.home_rounded;
+      case 1: return Icons.inventory_2_rounded;
+      case 2: return Icons.handyman_rounded;
+      case 3: return Icons.settings_rounded;
+    }
+  } else if (iconStyle == 'sharp') {
+    switch (index) {
+      case 0: return Icons.home_sharp;
+      case 1: return Icons.inventory_2_sharp;
+      case 2: return Icons.handyman_sharp;
+      case 3: return Icons.settings_sharp;
+    }
+  } else {
+    // outlined
+    switch (index) {
+      case 0: return Icons.home_outlined;
+      case 1: return Icons.inventory_2_outlined;
+      case 2: return Icons.handyman_outlined;
+      case 3: return Icons.settings_outlined;
+    }
+  }
+  return Icons.home_outlined;
 }
