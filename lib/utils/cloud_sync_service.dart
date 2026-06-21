@@ -123,7 +123,11 @@ class GoogleDriveSyncService {
       await prefs.setBool(_simSignInKey, false);
       return;
     }
-    await GoogleSignIn.instance.signOut();
+    try {
+      await GoogleSignIn.instance.signOut();
+    } catch (e) {
+      debugPrint('GoogleSignIn.signOut failed or unimplemented: $e');
+    }
   }
 
   /// Gets the local SQLite file directory.

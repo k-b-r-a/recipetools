@@ -355,7 +355,7 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
             if (isLocal) ...[
               const SizedBox(height: 4),
               Text(
-                l10n.localeName == 'es' ? 'Sandbox Local' : 'Local Sandbox',
+                l10n.localeName == 'es' ? 'Copia Local' : 'Local Backup',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

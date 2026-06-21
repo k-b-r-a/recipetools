@@ -622,9 +622,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'Are you sure you want to permanently delete this backup from Google Drive?';
 
   @override
-  String get cloud_sync_sandbox_badge => 'Sandbox Mode';
+  String get cloud_sync_sandbox_badge => 'Local Backup';
 
   @override
   String get cloud_sync_sandbox_desc =>
-      'Running on Desktop. Data is backed up to a local directory mimicking Google Drive API behaviour.';
+      'Data is backed up to a local directory on your device.';
 }

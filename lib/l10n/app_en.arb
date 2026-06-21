@@ -237,6 +237,6 @@
   "cloud_sync_restore_confirm_desc": "This will overwrite all current recipes, steps, and ingredients with the selected backup. This action cannot be undone.",
   "cloud_sync_delete_confirm_title": "Delete Backup",
   "cloud_sync_delete_confirm_desc": "Are you sure you want to permanently delete this backup from Google Drive?",
-  "cloud_sync_sandbox_badge": "Sandbox Mode",
-  "cloud_sync_sandbox_desc": "Running on Desktop. Data is backed up to a local directory mimicking Google Drive API behaviour."
+  "cloud_sync_sandbox_badge": "Local Backup",
+  "cloud_sync_sandbox_desc": "Data is backed up to a local directory on your device."
 }

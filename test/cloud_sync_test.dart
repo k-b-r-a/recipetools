@@ -55,8 +55,8 @@ void main() {
 
       var state = container.read(cloudSyncProvider);
       expect(state.storageType, CloudSyncStorageType.localDirectory);
-      expect(state.signedIn, isTrue); // Local sandbox is always connected
-      expect(state.email, 'Local Sandbox');
+      expect(state.signedIn, isTrue); // Local backup is always connected
+      expect(state.email, 'Local Backup');
 
       // Switch to Google Drive
       await notifier.setStorageType(CloudSyncStorageType.googleDrive);

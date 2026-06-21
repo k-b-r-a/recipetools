@@ -209,6 +209,6 @@
   "cloud_sync_restore_confirm_desc": "Se sobrescribirán todas las recetas, pasos e ingredientes con la copia de seguridad seleccionada. Esta acción no se puede deshacer.",
   "cloud_sync_delete_confirm_title": "Eliminar Copia de Seguridad",
   "cloud_sync_delete_confirm_desc": "¿Estás seguro de que deseas eliminar permanentemente esta copia de seguridad de Google Drive?",
-  "cloud_sync_sandbox_badge": "Modo Sandbox",
-  "cloud_sync_sandbox_desc": "Ejecutándose en Escritorio. Las copias se guardan en un directorio local que simula a Google Drive."
+  "cloud_sync_sandbox_badge": "Copia Local",
+  "cloud_sync_sandbox_desc": "Las copias se guardan en un directorio local del dispositivo."
 }

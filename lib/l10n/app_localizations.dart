@@ -1371,13 +1371,13 @@ abstract class AppLocalizations {
   /// No description provided for @cloud_sync_sandbox_badge.
   ///
   /// In en, this message translates to:
-  /// **'Sandbox Mode'**
+  /// **'Local Backup'**
   String get cloud_sync_sandbox_badge;
 
   /// No description provided for @cloud_sync_sandbox_desc.
   ///
   /// In en, this message translates to:
-  /// **'Running on Desktop. Data is backed up to a local directory mimicking Google Drive API behaviour.'**
+  /// **'Data is backed up to a local directory on your device.'**
   String get cloud_sync_sandbox_desc;
 }
 

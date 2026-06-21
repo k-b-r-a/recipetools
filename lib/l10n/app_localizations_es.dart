@@ -625,9 +625,9 @@ class AppLocalizationsEs extends AppLocalizations {
       '¿Estás seguro de que deseas eliminar permanentemente esta copia de seguridad de Google Drive?';
 
   @override
-  String get cloud_sync_sandbox_badge => 'Modo Sandbox';
+  String get cloud_sync_sandbox_badge => 'Copia Local';
 
   @override
   String get cloud_sync_sandbox_desc =>
-      'Ejecutándose en Escritorio. Las copias se guardan en un directorio local que simula a Google Drive.';
+      'Las copias se guardan en un directorio local del dispositivo.';
 }

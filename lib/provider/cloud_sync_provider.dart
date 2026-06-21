@@ -78,7 +78,7 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
       final signedIn = storageType == CloudSyncStorageType.localDirectory || account != null;
       String? email;
       if (signedIn) {
-        email = storageType == CloudSyncStorageType.localDirectory ? 'Local Sandbox' : account?.email;
+        email = storageType == CloudSyncStorageType.localDirectory ? 'Local Backup' : account?.email;
       }
       
       final backups = await _syncService.getBackups();
@@ -109,8 +109,8 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
     state = CloudSyncState(
       storageType: type,
       clientId: state.clientId,
-      signedIn: type == CloudSyncStorageType.localDirectory, // Local Sandbox mode is always connected
-      email: type == CloudSyncStorageType.localDirectory ? 'Local Sandbox' : null,
+      signedIn: type == CloudSyncStorageType.localDirectory, // Local Backup mode is always connected
+      email: type == CloudSyncStorageType.localDirectory ? 'Local Backup' : null,
       backups: backups,
       loading: false,
     );
@@ -130,7 +130,7 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
         final backups = await _syncService.getBackups();
         state = state.copyWith(
           signedIn: true,
-          email: 'Local Sandbox',
+          email: 'Local Backup',
           backups: backups,
           loading: false,
           successMessage: 'Connected successfully.',
