@@ -44,7 +44,9 @@ class GoogleDriveSyncService {
   bool get isDefaultSimulation =>
       kIsWeb || Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
-  GoogleSignInAccount? _currentUser;
+  final GoogleSignInAccount? _currentUser;
+
+  GoogleDriveSyncService(this._currentUser);
 
   /// Gets the current storage type from settings.
   Future<CloudSyncStorageType> getStorageType() async {
@@ -82,19 +84,7 @@ class GoogleDriveSyncService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool(_simSignInKey) ?? false;
     }
-    if (_currentUser != null) return true;
-
-    // Try silent sign-in to restore connection
-    try {
-      final clientId = await getClientId();
-      await GoogleSignIn.instance.initialize(
-        clientId: clientId,
-      );
-      _currentUser = await GoogleSignIn.instance.attemptLightweightAuthentication();
-      return _currentUser != null;
-    } catch (_) {
-      return false;
-    }
+    return _currentUser != null;
   }
 
   /// Gets the signed-in user's email address or sandbox identifier.
@@ -107,8 +97,8 @@ class GoogleDriveSyncService {
     return _currentUser?.email;
   }
 
-  /// Connects / signs in. Returns null on success, or an error string on failure.
-  Future<String?> signIn() async {
+  /// Connects / signs in. Returns the authenticated account on success.
+  Future<GoogleSignInAccount?> signIn() async {
     final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
     if (isSim) {
       final prefs = await SharedPreferences.getInstance();
@@ -116,24 +106,13 @@ class GoogleDriveSyncService {
       await prefs.setString(_simEmailKey, 'sandbox.user@gmail.com');
       return null;
     }
-    try {
-      final clientId = await getClientId();
-      
-      await GoogleSignIn.instance.initialize(
-        clientId: clientId,
-      );
-      
-      final account = await GoogleSignIn.instance.authenticate();
-      _currentUser = account;
-      
-      if (_currentUser == null) {
-        return 'Sign-in cancelled by user.';
-      }
-      return null;
-    } catch (e) {
-      debugPrint('Google Sign-In Error: $e');
-      return e.toString();
-    }
+    final clientId = await getClientId();
+    
+    await GoogleSignIn.instance.initialize(
+      clientId: clientId,
+    );
+    
+    return await GoogleSignIn.instance.authenticate();
   }
 
   /// Signs the user out / disconnects.
@@ -145,7 +124,6 @@ class GoogleDriveSyncService {
       return;
     }
     await GoogleSignIn.instance.signOut();
-    _currentUser = null;
   }
 
   /// Gets the local SQLite file directory.

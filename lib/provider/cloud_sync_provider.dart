@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../utils/cloud_sync_service.dart';
 import 'database_provider.dart';
 
@@ -62,20 +63,26 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
   Future<void> checkStatus() async {
     state = state.copyWith(loading: true);
     try {
-      final signedIn = await _syncService.isSignedIn();
       final storageType = await _syncService.getStorageType();
       final clientId = await _syncService.getClientId();
-      String? email;
-      List<BackupFile> backups = [];
-      if (signedIn) {
-        email = await _syncService.getUserEmail();
-        backups = await _syncService.getBackups();
-      } else {
-        // If local backups mode, we can still load list of local backups
-        if (storageType == CloudSyncStorageType.localDirectory) {
-          backups = await _syncService.getBackups();
-        }
+      
+      GoogleSignInAccount? account;
+      if (storageType == CloudSyncStorageType.googleDrive) {
+        await GoogleSignIn.instance.initialize(
+          clientId: clientId,
+        );
+        account = await GoogleSignIn.instance.attemptLightweightAuthentication();
+        ref.read(googleUserProvider.notifier).setUser(account);
       }
+      
+      final signedIn = storageType == CloudSyncStorageType.localDirectory || account != null;
+      String? email;
+      if (signedIn) {
+        email = storageType == CloudSyncStorageType.localDirectory ? 'Local Sandbox' : account?.email;
+      }
+      
+      final backups = await _syncService.getBackups();
+      
       state = state.copyWith(
         signedIn: signedIn,
         email: email,
@@ -116,21 +123,38 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
 
   Future<void> signIn() async {
     state = state.copyWith(loading: true);
-    final error = await _syncService.signIn();
-    if (error == null) {
-      final email = await _syncService.getUserEmail();
-      final backups = await _syncService.getBackups();
+    try {
+      final account = await _syncService.signIn();
+      final storageType = await _syncService.getStorageType();
+      if (storageType == CloudSyncStorageType.localDirectory) {
+        final backups = await _syncService.getBackups();
+        state = state.copyWith(
+          signedIn: true,
+          email: 'Local Sandbox',
+          backups: backups,
+          loading: false,
+          successMessage: 'Connected successfully.',
+        );
+      } else if (account != null) {
+        ref.read(googleUserProvider.notifier).setUser(account);
+        final backups = await _syncService.getBackups();
+        state = state.copyWith(
+          signedIn: true,
+          email: account.email,
+          backups: backups,
+          loading: false,
+          successMessage: 'Connected successfully.',
+        );
+      } else {
+        state = state.copyWith(
+          loading: false,
+          errorMessage: 'Sign-in cancelled by user.',
+        );
+      }
+    } catch (e) {
       state = state.copyWith(
-        signedIn: true,
-        email: email,
-        backups: backups,
         loading: false,
-        successMessage: 'Connected successfully.',
-      );
-    } else {
-      state = state.copyWith(
-        loading: false,
-        errorMessage: 'Connection failed: $error',
+        errorMessage: 'Connection failed: $e',
       );
     }
   }
@@ -138,7 +162,8 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
   Future<void> signOut() async {
     state = state.copyWith(loading: true);
     await _syncService.signOut();
-    // Re-check status to load backups in case of local mode
+    ref.read(googleUserProvider.notifier).setUser(null);
+    
     final storageType = await _syncService.getStorageType();
     final list = storageType == CloudSyncStorageType.localDirectory
         ? await _syncService.getBackups()
@@ -247,8 +272,22 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
   }
 }
 
+class GoogleUserNotifier extends Notifier<GoogleSignInAccount?> {
+  @override
+  GoogleSignInAccount? build() {
+    return null;
+  }
+
+  void setUser(GoogleSignInAccount? user) {
+    state = user;
+  }
+}
+
+final googleUserProvider = NotifierProvider<GoogleUserNotifier, GoogleSignInAccount?>(GoogleUserNotifier.new);
+
 final googleDriveSyncServiceProvider = Provider<GoogleDriveSyncService>((ref) {
-  return GoogleDriveSyncService();
+  final user = ref.watch(googleUserProvider);
+  return GoogleDriveSyncService(user);
 });
 
 final cloudSyncProvider = NotifierProvider<CloudSyncNotifier, CloudSyncState>(CloudSyncNotifier.new);
