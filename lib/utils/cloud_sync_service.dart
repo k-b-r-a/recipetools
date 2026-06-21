@@ -8,6 +8,8 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+enum CloudSyncStorageType { googleDrive, localDirectory }
+
 class BackupFile {
   final String id;
   final String name;
@@ -23,56 +25,101 @@ class BackupFile {
 }
 
 class GoogleDriveSyncService {
-  // Check if we are running in simulation/mock mode
-  bool get isSimulationMode =>
-      kIsWeb || Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-
+  static const _storageTypeKey = 'google_drive_storage_type';
+  static const _clientIdKey = 'google_drive_client_id';
   static const _simSignInKey = 'google_drive_sim_signed_in';
   static const _simEmailKey = 'google_drive_sim_email';
+
+  // Check if the current platform defaults to simulation mode
+  bool get isDefaultSimulation =>
+      kIsWeb || Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
   // Local reference to the authenticated Google account (v7+ does not track this globally)
   GoogleSignInAccount? _currentUser;
 
-  /// Checks if the user is currently signed in.
+  /// Gets the current storage type from settings.
+  Future<CloudSyncStorageType> getStorageType() async {
+    final prefs = await SharedPreferences.getInstance();
+    final index = prefs.getInt(_storageTypeKey) ?? (isDefaultSimulation ? 1 : 0);
+    return CloudSyncStorageType.values[index];
+  }
+
+  /// Sets the storage type.
+  Future<void> setStorageType(CloudSyncStorageType type) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_storageTypeKey, type.index);
+  }
+
+  /// Gets the custom Client ID.
+  Future<String?> getClientId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_clientIdKey);
+  }
+
+  /// Sets the custom Client ID.
+  Future<void> setClientId(String? clientId) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (clientId == null || clientId.trim().isEmpty) {
+      await prefs.remove(_clientIdKey);
+    } else {
+      await prefs.setString(_clientIdKey, clientId.trim());
+    }
+  }
+
+  /// Checks if the user is currently signed in/connected.
   Future<bool> isSignedIn() async {
-    if (isSimulationMode) {
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    if (isSim) {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool(_simSignInKey) ?? false;
     }
     return _currentUser != null;
   }
 
-  /// Gets the signed-in user's email address.
+  /// Gets the signed-in user's email address or sandbox identifier.
   Future<String?> getUserEmail() async {
-    if (isSimulationMode) {
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    if (isSim) {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_simEmailKey) ?? 'sandbox.user@gmail.com';
     }
     return _currentUser?.email;
   }
 
-  /// Signs the user in to Google Drive.
-  Future<bool> signIn() async {
-    if (isSimulationMode) {
+  /// Connects / signs in. Returns null on success, or an error string on failure.
+  Future<String?> signIn() async {
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    if (isSim) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_simSignInKey, true);
       await prefs.setString(_simEmailKey, 'sandbox.user@gmail.com');
-      return true;
+      return null;
     }
     try {
-      await GoogleSignIn.instance.initialize();
+      final clientId = await getClientId();
+      
+      // Initialize with custom client ID if provided
+      await GoogleSignIn.instance.initialize(
+        clientId: clientId,
+      );
+      
       final account = await GoogleSignIn.instance.authenticate();
       _currentUser = account;
-      return _currentUser != null;
+      
+      if (_currentUser == null) {
+        return 'Sign-in cancelled by user.';
+      }
+      return null;
     } catch (e) {
       debugPrint('Google Sign-In Error: $e');
-      return false;
+      return e.toString();
     }
   }
 
-  /// Signs the user out.
+  /// Signs the user out / disconnects.
   Future<void> signOut() async {
-    if (isSimulationMode) {
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    if (isSim) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_simSignInKey, false);
       return;
@@ -86,33 +133,34 @@ class GoogleDriveSyncService {
     return File(p.join(dbFolder.path, 'db.sqlite'));
   }
 
-  /// Gets the mock Google Drive folder directory (used in simulation mode).
+  /// Gets the local sandbox backup folder directory.
   Future<Directory> _getMockDriveDirectory() async {
     final docDir = await getApplicationDocumentsDirectory();
-    final mockDir = Directory(p.join(docDir.path, 'google_drive_mock'));
+    final mockDir = Directory(p.join(docDir.path, 'recipetools_backups'));
     if (!await mockDir.exists()) {
       await mockDir.create(recursive: true);
     }
     return mockDir;
   }
 
-  /// Lists all backups available on Google Drive.
+  /// Lists all backups.
   Future<List<BackupFile>> getBackups() async {
-    if (isSimulationMode) {
-      // Simulate network delay
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    if (isSim) {
       await Future.delayed(const Duration(milliseconds: 600));
 
       final mockDir = await _getMockDriveDirectory();
       final List<BackupFile> list = [];
-      final files = mockDir.listSync();
+      if (!await mockDir.exists()) return list;
       
+      final files = mockDir.listSync();
       for (var file in files) {
         if (file is File && p.basename(file.path).startsWith('backup_') && file.path.endsWith('.sqlite')) {
           final stats = file.statSync();
           final name = p.basename(file.path);
           list.add(
             BackupFile(
-              id: file.path, // path acts as ID in simulation
+              id: file.path,
               name: name,
               sizeBytes: stats.size,
               dateCreated: stats.changed,
@@ -120,7 +168,6 @@ class GoogleDriveSyncService {
           );
         }
       }
-      // Sort backups by date descending (newest first)
       list.sort((a, b) => b.dateCreated.compareTo(a.dateCreated));
       return list;
     }
@@ -131,7 +178,6 @@ class GoogleDriveSyncService {
       
       final driveApi = drive.DriveApi(client);
       
-      // Query appDataFolder for sqlite backups
       final fileList = await driveApi.files.list(
         q: "mimeType = 'application/x-sqlite3' or name contains 'backup_'",
         spaces: 'appDataFolder',
@@ -155,7 +201,7 @@ class GoogleDriveSyncService {
       return backups;
     } catch (e) {
       debugPrint('Error getting Google Drive backups: $e');
-      return [];
+      throw Exception('Google Drive error: $e');
     }
   }
 
@@ -167,7 +213,8 @@ class GoogleDriveSyncService {
     final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first;
     final backupFileName = 'backup_$timestamp.sqlite';
 
-    if (isSimulationMode) {
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    if (isSim) {
       await Future.delayed(const Duration(milliseconds: 1000));
       final mockDir = await _getMockDriveDirectory();
       final backupDest = File(p.join(mockDir.path, backupFileName));
@@ -200,16 +247,16 @@ class GoogleDriveSyncService {
     }
   }
 
-  /// Restores the database from a backup file.
+  /// Restores the database from a backup.
   Future<bool> restoreBackup(String backupId) async {
     final dbFile = await _getDatabaseFile();
 
-    if (isSimulationMode) {
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    if (isSim) {
       await Future.delayed(const Duration(milliseconds: 1200));
       final sourceFile = File(backupId);
       if (!await sourceFile.exists()) return false;
 
-      // Copy backup over existing db.sqlite
       await sourceFile.copy(dbFile.path);
       return true;
     }
@@ -232,7 +279,6 @@ class GoogleDriveSyncService {
 
       if (fileBytes.isEmpty) return false;
 
-      // Write bytes over main database
       await dbFile.writeAsBytes(fileBytes);
       return true;
     } catch (e) {
@@ -241,9 +287,10 @@ class GoogleDriveSyncService {
     }
   }
 
-  /// Deletes a backup from Google Drive.
+  /// Deletes a backup.
   Future<bool> deleteBackup(String backupId) async {
-    if (isSimulationMode) {
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    if (isSim) {
       await Future.delayed(const Duration(milliseconds: 500));
       final file = File(backupId);
       if (await file.exists()) {

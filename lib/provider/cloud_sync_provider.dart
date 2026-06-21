@@ -9,6 +9,8 @@ class CloudSyncState {
   final bool loading;
   final String? errorMessage;
   final String? successMessage;
+  final CloudSyncStorageType storageType;
+  final String? clientId;
 
   CloudSyncState({
     this.signedIn = false,
@@ -17,6 +19,8 @@ class CloudSyncState {
     this.loading = false,
     this.errorMessage,
     this.successMessage,
+    this.storageType = CloudSyncStorageType.googleDrive,
+    this.clientId,
   });
 
   CloudSyncState copyWith({
@@ -26,6 +30,8 @@ class CloudSyncState {
     bool? loading,
     String? errorMessage,
     String? successMessage,
+    CloudSyncStorageType? storageType,
+    String? clientId,
   }) {
     return CloudSyncState(
       signedIn: signedIn ?? this.signedIn,
@@ -34,6 +40,8 @@ class CloudSyncState {
       loading: loading ?? this.loading,
       errorMessage: errorMessage,
       successMessage: successMessage,
+      storageType: storageType ?? this.storageType,
+      clientId: clientId ?? this.clientId,
     );
   }
 }
@@ -55,16 +63,25 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
     state = state.copyWith(loading: true);
     try {
       final signedIn = await _syncService.isSignedIn();
+      final storageType = await _syncService.getStorageType();
+      final clientId = await _syncService.getClientId();
       String? email;
       List<BackupFile> backups = [];
       if (signedIn) {
         email = await _syncService.getUserEmail();
         backups = await _syncService.getBackups();
+      } else {
+        // If local backups mode, we can still load list of local backups
+        if (storageType == CloudSyncStorageType.localDirectory) {
+          backups = await _syncService.getBackups();
+        }
       }
       state = state.copyWith(
         signedIn: signedIn,
         email: email,
         backups: backups,
+        storageType: storageType,
+        clientId: clientId,
         loading: false,
       );
     } catch (e) {
@@ -75,10 +92,32 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
     }
   }
 
+  Future<void> setStorageType(CloudSyncStorageType type) async {
+    state = state.copyWith(loading: true);
+    await _syncService.signOut(); // Sign out of existing connection
+    await _syncService.setStorageType(type);
+    
+    final backups = await _syncService.getBackups();
+    
+    state = CloudSyncState(
+      storageType: type,
+      clientId: state.clientId,
+      signedIn: type == CloudSyncStorageType.localDirectory, // Local Sandbox mode is always connected
+      email: type == CloudSyncStorageType.localDirectory ? 'Local Sandbox' : null,
+      backups: backups,
+      loading: false,
+    );
+  }
+
+  Future<void> setClientId(String? clientId) async {
+    await _syncService.setClientId(clientId);
+    state = state.copyWith(clientId: clientId);
+  }
+
   Future<void> signIn() async {
     state = state.copyWith(loading: true);
-    final success = await _syncService.signIn();
-    if (success) {
+    final error = await _syncService.signIn();
+    if (error == null) {
       final email = await _syncService.getUserEmail();
       final backups = await _syncService.getBackups();
       state = state.copyWith(
@@ -86,12 +125,12 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
         email: email,
         backups: backups,
         loading: false,
-        successMessage: 'Connected to Google Drive successfully.',
+        successMessage: 'Connected successfully.',
       );
     } else {
       state = state.copyWith(
         loading: false,
-        errorMessage: 'Connection to Google Drive failed.',
+        errorMessage: 'Connection failed: $error',
       );
     }
   }
@@ -99,11 +138,19 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
   Future<void> signOut() async {
     state = state.copyWith(loading: true);
     await _syncService.signOut();
-    state = CloudSyncState();
+    // Re-check status to load backups in case of local mode
+    final storageType = await _syncService.getStorageType();
+    final list = storageType == CloudSyncStorageType.localDirectory
+        ? await _syncService.getBackups()
+        : const <BackupFile>[];
+    state = CloudSyncState(
+      storageType: storageType,
+      clientId: state.clientId,
+      backups: list,
+    );
   }
 
   Future<void> refreshBackups() async {
-    if (!state.signedIn) return;
     state = state.copyWith(loading: true);
     try {
       final list = await _syncService.getBackups();
@@ -111,13 +158,12 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
     } catch (e) {
       state = state.copyWith(
         loading: false,
-        errorMessage: 'Failed to retrieve backups from Google Drive.',
+        errorMessage: 'Failed to retrieve backups: $e',
       );
     }
   }
 
   Future<bool> createBackup() async {
-    if (!state.signedIn) return false;
     state = state.copyWith(loading: true);
     try {
       final success = await _syncService.createBackup();
@@ -146,7 +192,6 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
   }
 
   Future<bool> restoreBackup(String backupId) async {
-    if (!state.signedIn) return false;
     state = state.copyWith(loading: true);
     try {
       final success = await _syncService.restoreBackup(backupId);
@@ -174,7 +219,6 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
   }
 
   Future<bool> deleteBackup(String backupId) async {
-    if (!state.signedIn) return false;
     state = state.copyWith(loading: true);
     try {
       final success = await _syncService.deleteBackup(backupId);

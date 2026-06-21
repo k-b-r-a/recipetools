@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../provider/cloud_sync_provider.dart';
+import '../utils/cloud_sync_service.dart';
 import '../widgets/floating_pill_app_bar.dart';
 
 class CloudSyncScreen extends ConsumerStatefulWidget {
@@ -15,10 +16,22 @@ class CloudSyncScreen extends ConsumerStatefulWidget {
 
 class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _clientIdController = TextEditingController();
+  bool _showInstructions = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = ref.read(cloudSyncProvider);
+      _clientIdController.text = state.clientId ?? '';
+    });
+  }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _clientIdController.dispose();
     super.dispose();
   }
 
@@ -48,6 +61,9 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
 
     // Listen to changes in success/error messages to show SnackBar notifications
     ref.listen<CloudSyncState>(cloudSyncProvider, (previous, next) {
+      if (next.clientId != previous?.clientId) {
+        _clientIdController.text = next.clientId ?? '';
+      }
       if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -83,6 +99,8 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 16.0),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
+                    _buildSettingsCard(syncState, syncNotifier, theme, l10n),
+                    const SizedBox(height: 24),
                     _buildConnectionHeader(syncState, syncNotifier, theme, l10n),
                     const SizedBox(height: 24),
                     if (syncState.signedIn) ...[
@@ -112,12 +130,190 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
     );
   }
 
+  Widget _buildSettingsCard(
+    CloudSyncState state,
+    CloudSyncNotifier notifier,
+    ThemeData theme,
+    AppLocalizations l10n,
+  ) {
+    final isGoogleDrive = state.storageType == CloudSyncStorageType.googleDrive;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.localeName == 'es' ? 'Destino de Sincronización' : 'Sync Target',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<CloudSyncStorageType>(
+              segments: [
+                ButtonSegment<CloudSyncStorageType>(
+                  value: CloudSyncStorageType.googleDrive,
+                  icon: const Icon(Icons.cloud_outlined),
+                  label: const Text('Google Drive'),
+                ),
+                ButtonSegment<CloudSyncStorageType>(
+                  value: CloudSyncStorageType.localDirectory,
+                  icon: const Icon(Icons.folder_open),
+                  label: Text(l10n.localeName == 'es' ? 'Directorio Local' : 'Local Directory'),
+                ),
+              ],
+              selected: {state.storageType},
+              onSelectionChanged: (Set<CloudSyncStorageType> newSelection) {
+                notifier.setStorageType(newSelection.first);
+              },
+            ),
+            if (isGoogleDrive) ...[
+              const SizedBox(height: 20),
+              Text(
+                l10n.localeName == 'es' ? 'Client ID de Google (Opcional)' : 'Google Client ID (Optional)',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _clientIdController,
+                      enabled: !state.signedIn,
+                      decoration: InputDecoration(
+                        hintText: 'e.g. XXXXXX.apps.googleusercontent.com',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        helperText: l10n.localeName == 'es'
+                            ? 'Déjalo vacío para usar la configuración nativa'
+                            : 'Leave empty to use native configuration',
+                      ),
+                      onChanged: (val) {
+                        notifier.setClientId(val);
+                      },
+                    ),
+                  ),
+                  if (!state.signedIn && _clientIdController.text.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _clientIdController.clear();
+                        notifier.setClientId(null);
+                      },
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _showInstructions = !_showInstructions;
+                  });
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _showInstructions ? Icons.expand_less : Icons.expand_more,
+                        color: theme.colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.localeName == 'es' ? '¿Cómo obtener un Client ID de Google?' : 'How to get a Google Client ID?',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (_showInstructions) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    l10n.localeName == 'es'
+                        ? 'Para usar Google Drive Sync con tu propia clave:\n\n'
+                            '1. Ve a Google Cloud Console (console.cloud.google.com)\n'
+                            '2. Crea un proyecto y habilita "Google Drive API".\n'
+                            '3. Configura la Pantalla de Consentimiento OAuth con el alcance "auth/drive.appdata".\n'
+                            '4. Crea credenciales de "ID de cliente de OAuth".\n'
+                            '5. Elige "Aplicación web" o "Android" según tu plataforma.\n'
+                            '6. Copia el ID de cliente generado y pégalo aquí antes de iniciar sesión.'
+                        : 'To use Google Drive Sync with your own credentials:\n\n'
+                            '1. Go to Google Cloud Console (console.cloud.google.com)\n'
+                            '2. Create a project and enable the "Google Drive API".\n'
+                            '3. Configure the OAuth Consent Screen with the "auth/drive.appdata" scope.\n'
+                            '4. Create "OAuth Client ID" credentials.\n'
+                            '5. Select "Web application" or "Android" depending on your platform.\n'
+                            '6. Copy the generated Client ID and paste it here before signing in.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      height: 1.4,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ] else ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  l10n.localeName == 'es'
+                      ? 'El modo Directorio Local guarda tus respaldos en el almacenamiento local del dispositivo. No requiere conexión a Internet ni una cuenta de Google.'
+                      : 'Local Directory mode stores your backups in the device\'s local storage. It does not require internet connection or a Google Account.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    height: 1.4,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildConnectionHeader(
     CloudSyncState state,
     CloudSyncNotifier notifier,
     ThemeData theme,
     AppLocalizations l10n,
   ) {
+    final isLocal = state.storageType == CloudSyncStorageType.localDirectory;
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
@@ -135,20 +331,33 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
               radius: 40,
               backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.15),
               child: Icon(
-                state.signedIn ? Icons.cloud_done_outlined : Icons.backup_outlined,
+                isLocal
+                    ? Icons.folder_shared_outlined
+                    : (state.signedIn ? Icons.cloud_done_outlined : Icons.backup_outlined),
                 color: theme.colorScheme.primary,
                 size: 40,
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              state.signedIn ? l10n.cloud_sync_connected : l10n.cloud_sync_disconnected,
+              isLocal
+                  ? l10n.cloud_sync_sandbox_badge
+                  : (state.signedIn ? l10n.cloud_sync_connected : l10n.cloud_sync_disconnected),
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
-            if (state.signedIn && state.email != null) ...[
+            if (isLocal) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.localeName == 'es' ? 'Sandbox Local' : 'Local Sandbox',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ] else if (state.signedIn && state.email != null) ...[
               const SizedBox(height: 4),
               Text(
                 state.email!,
@@ -160,45 +369,47 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
             ],
             const SizedBox(height: 12),
             Text(
-              l10n.cloud_sync_desc,
+              isLocal ? l10n.cloud_sync_sandbox_desc : l10n.cloud_sync_desc,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
-            if (!state.signedIn)
-              ElevatedButton.icon(
-                onPressed: () => notifier.signIn(),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+            if (!isLocal) ...[
+              const SizedBox(height: 20),
+              if (!state.signedIn)
+                ElevatedButton.icon(
+                  onPressed: () => notifier.signIn(),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
                   ),
-                  elevation: 0,
-                ),
-                icon: const Icon(Icons.login),
-                label: Text(
-                  l10n.cloud_sync_connect_btn,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              )
-            else
-              OutlinedButton.icon(
-                onPressed: () => notifier.signOut(),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                  icon: const Icon(Icons.login),
+                  label: Text(
+                    l10n.cloud_sync_connect_btn,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                )
+              else
+                OutlinedButton.icon(
+                  onPressed: () => notifier.signOut(),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.logout),
+                  label: Text(l10n.cloud_sync_disconnect_btn),
                 ),
-                icon: const Icon(Icons.logout),
-                label: Text(l10n.cloud_sync_disconnect_btn),
-              ),
+            ],
           ],
         ),
       ),
@@ -211,8 +422,7 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
     ThemeData theme,
     AppLocalizations l10n,
   ) {
-    // Check if the service is in simulation mode to show Sandbox Badge
-    final isSim = ref.read(googleDriveSyncServiceProvider).isSimulationMode;
+    final isSim = state.storageType == CloudSyncStorageType.localDirectory;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
