@@ -261,20 +261,24 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
                   ),
                   child: Text(
                     l10n.localeName == 'es'
-                        ? 'Para usar Google Drive Sync con tu propia clave:\n\n'
-                            '1. Ve a Google Cloud Console (console.cloud.google.com)\n'
-                            '2. Crea un proyecto y habilita "Google Drive API".\n'
-                            '3. Configura la Pantalla de Consentimiento OAuth con el alcance "auth/drive.appdata".\n'
-                            '4. Crea credenciales de "ID de cliente de OAuth".\n'
-                            '5. Elige "Aplicación web" o "Android" según tu plataforma.\n'
-                            '6. Copia el ID de cliente generado y pégalo aquí antes de iniciar sesión.'
-                        : 'To use Google Drive Sync with your own credentials:\n\n'
-                            '1. Go to Google Cloud Console (console.cloud.google.com)\n'
+                        ? 'Pasos de configuración de OAuth2 para Google Drive:\n\n'
+                            '1. Ve a Google Cloud Console (console.cloud.google.com).\n'
+                            '2. Crea un proyecto y habilita la "Google Drive API".\n'
+                            '3. Configura la Pantalla de Consentimiento OAuth:\n'
+                            '   • Añade el alcance "https://www.googleapis.com/auth/drive.appdata".\n'
+                            '   • En estado "Testing", añade tu correo a la lista de "Test Users". De lo contrario, fallará la conexión.\n'
+                            '4. Ve a "Credenciales" -> "Crear credenciales" -> "ID de cliente de OAuth".\n'
+                            '5. Elige el tipo según tu plataforma (ej. Aplicación web para pruebas, o Android/iOS para móvil).\n'
+                            '6. Copia el ID de cliente, pégalo aquí y presiona Sign In.'
+                        : 'Google Drive OAuth2 Setup Steps:\n\n'
+                            '1. Go to Google Cloud Console (console.cloud.google.com).\n'
                             '2. Create a project and enable the "Google Drive API".\n'
-                            '3. Configure the OAuth Consent Screen with the "auth/drive.appdata" scope.\n'
-                            '4. Create "OAuth Client ID" credentials.\n'
-                            '5. Select "Web application" or "Android" depending on your platform.\n'
-                            '6. Copy the generated Client ID and paste it here before signing in.',
+                            '3. Configure the OAuth Consent Screen:\n'
+                            '   • Add the scope "https://www.googleapis.com/auth/drive.appdata".\n'
+                            '   • While in "Testing" mode, add your email to the "Test Users" list. Otherwise, authentication will fail.\n'
+                            '4. Go to "Credentials" -> "Create Credentials" -> "OAuth Client ID".\n'
+                            '5. Select application type based on platform (e.g. Web application for testing, or Android/iOS for mobile).\n'
+                            '6. Copy the Client ID, paste it here, and press Sign In.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       height: 1.4,
                       color: theme.colorScheme.onSurfaceVariant,

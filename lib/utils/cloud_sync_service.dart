@@ -2,13 +2,23 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 enum CloudSyncStorageType { googleDrive, localDirectory }
+
+class GoogleAuthClient extends http.BaseClient {
+  final Map<String, String> _headers;
+  final http.Client _client = http.Client();
+  GoogleAuthClient(this._headers);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    return _client.send(request..headers.addAll(_headers));
+  }
+}
 
 class BackupFile {
   final String id;
@@ -34,7 +44,6 @@ class GoogleDriveSyncService {
   bool get isDefaultSimulation =>
       kIsWeb || Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
-  // Local reference to the authenticated Google account (v7+ does not track this globally)
   GoogleSignInAccount? _currentUser;
 
   /// Gets the current storage type from settings.
@@ -73,7 +82,19 @@ class GoogleDriveSyncService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool(_simSignInKey) ?? false;
     }
-    return _currentUser != null;
+    if (_currentUser != null) return true;
+
+    // Try silent sign-in to restore connection
+    try {
+      final clientId = await getClientId();
+      await GoogleSignIn.instance.initialize(
+        clientId: clientId,
+      );
+      _currentUser = await GoogleSignIn.instance.attemptLightweightAuthentication();
+      return _currentUser != null;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Gets the signed-in user's email address or sandbox identifier.
@@ -98,7 +119,6 @@ class GoogleDriveSyncService {
     try {
       final clientId = await getClientId();
       
-      // Initialize with custom client ID if provided
       await GoogleSignIn.instance.initialize(
         clientId: clientId,
       );
@@ -124,6 +144,7 @@ class GoogleDriveSyncService {
       await prefs.setBool(_simSignInKey, false);
       return;
     }
+    await GoogleSignIn.instance.signOut();
     _currentUser = null;
   }
 
@@ -318,22 +339,11 @@ class GoogleDriveSyncService {
     final account = _currentUser;
     if (account == null) return null;
 
-    final clientAuth = await account.authorizationClient.authorizeScopes([
+    final authHeaders = await account.authorizationClient.authorizationHeaders([
       drive.DriveApi.driveAppdataScope,
-    ]);
+    ], promptIfNecessary: true);
 
-    final token = clientAuth.accessToken;
-
-    final credentials = auth.AccessCredentials(
-      auth.AccessToken(
-        'Bearer',
-        token,
-        DateTime.now().toUtc().add(const Duration(hours: 1)),
-      ),
-      null,
-      [drive.DriveApi.driveAppdataScope],
-    );
-
-    return auth.authenticatedClient(http.Client(), credentials);
+    if (authHeaders == null) return null;
+    return GoogleAuthClient(authHeaders);
   }
 }
