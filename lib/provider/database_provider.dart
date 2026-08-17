@@ -1,14 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/database.dart';
 
+class DatabaseNotifier extends Notifier<AppDatabase> {
+  @override
+  AppDatabase build() {
+    final db = AppDatabase();
+    ref.onDispose(() => db.close());
+    return db;
+  }
+
+  void refreshDatabase() {
+    state.close();
+    ref.invalidateSelf();
+  }
+}
+
 /// Provider that exposes the AppDatabase instance to the entire app.
-final databaseProvider = Provider<AppDatabase>((ref) {
-  final db = AppDatabase();
-
-  ref.onDispose(() => db.close());
-
-  return db;
-});
+final databaseProvider = NotifierProvider<DatabaseNotifier, AppDatabase>(DatabaseNotifier.new);
 
 /// Any change in the 'recipes' table will trigger an automatic UI update.
 final recipesStreamProvider = StreamProvider<List<Recipe>>((ref) {

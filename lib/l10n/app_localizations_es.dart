@@ -574,4 +574,60 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_format_currency => 'Símbolo de Moneda';
+
+  @override
+  String get cloud_sync_title => 'Sincronización en la Nube';
+
+  @override
+  String get cloud_sync_desc =>
+      'Realiza copias de seguridad y restaura tus recetas e ingredientes de forma segura usando tu cuenta de Google Drive.';
+
+  @override
+  String get cloud_sync_connected => 'Conectado a Google Drive';
+
+  @override
+  String get cloud_sync_disconnected => 'Desconectado';
+
+  @override
+  String get cloud_sync_connect_btn => 'Iniciar sesión con Google';
+
+  @override
+  String get cloud_sync_disconnect_btn => 'Cerrar sesión';
+
+  @override
+  String get cloud_sync_backup_btn => 'Respaldar ahora';
+
+  @override
+  String get cloud_sync_backups_header => 'Historial de Copias';
+
+  @override
+  String get cloud_sync_no_backups => 'No hay copias de seguridad.';
+
+  @override
+  String get cloud_sync_backup_confirm_title => 'Crear Copia de Seguridad';
+
+  @override
+  String get cloud_sync_backup_confirm_desc =>
+      'Se subirá una copia de seguridad de tu base de datos actual a Google Drive.';
+
+  @override
+  String get cloud_sync_restore_confirm_title => 'Restaurar Copia de Seguridad';
+
+  @override
+  String get cloud_sync_restore_confirm_desc =>
+      'Se sobrescribirán todas las recetas, pasos e ingredientes con la copia de seguridad seleccionada. Esta acción no se puede deshacer.';
+
+  @override
+  String get cloud_sync_delete_confirm_title => 'Eliminar Copia de Seguridad';
+
+  @override
+  String get cloud_sync_delete_confirm_desc =>
+      '¿Estás seguro de que deseas eliminar permanentemente esta copia de seguridad de Google Drive?';
+
+  @override
+  String get cloud_sync_sandbox_badge => 'Copia Local';
+
+  @override
+  String get cloud_sync_sandbox_desc =>
+      'Las copias se guardan en un directorio local del dispositivo.';
 }

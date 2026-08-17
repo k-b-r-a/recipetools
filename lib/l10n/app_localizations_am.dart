@@ -571,4 +571,60 @@ class AppLocalizationsAm extends AppLocalizations {
 
   @override
   String get settings_format_currency => 'Currency Symbol';
+
+  @override
+  String get cloud_sync_title => 'Cloud Sync';
+
+  @override
+  String get cloud_sync_desc =>
+      'Back up and restore your recipes and ingredients securely using your Google Drive AppData folder.';
+
+  @override
+  String get cloud_sync_connected => 'Connected to Google Drive';
+
+  @override
+  String get cloud_sync_disconnected => 'Disconnected';
+
+  @override
+  String get cloud_sync_connect_btn => 'Sign in with Google';
+
+  @override
+  String get cloud_sync_disconnect_btn => 'Sign Out';
+
+  @override
+  String get cloud_sync_backup_btn => 'Back Up Now';
+
+  @override
+  String get cloud_sync_backups_header => 'Backups History';
+
+  @override
+  String get cloud_sync_no_backups => 'No backups found.';
+
+  @override
+  String get cloud_sync_backup_confirm_title => 'Create Backup';
+
+  @override
+  String get cloud_sync_backup_confirm_desc =>
+      'This will upload a copy of your current database to Google Drive.';
+
+  @override
+  String get cloud_sync_restore_confirm_title => 'Restore Backup';
+
+  @override
+  String get cloud_sync_restore_confirm_desc =>
+      'This will overwrite all current recipes, steps, and ingredients with the selected backup. This action cannot be undone.';
+
+  @override
+  String get cloud_sync_delete_confirm_title => 'Delete Backup';
+
+  @override
+  String get cloud_sync_delete_confirm_desc =>
+      'Are you sure you want to permanently delete this backup from Google Drive?';
+
+  @override
+  String get cloud_sync_sandbox_badge => 'Local Backup';
+
+  @override
+  String get cloud_sync_sandbox_desc =>
+      'Data is backed up to a local directory on your device.';
 }

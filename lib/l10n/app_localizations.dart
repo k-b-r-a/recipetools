@@ -1277,6 +1277,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Currency Symbol'**
   String get settings_format_currency;
+
+  /// No description provided for @cloud_sync_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Sync'**
+  String get cloud_sync_title;
+
+  /// No description provided for @cloud_sync_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up and restore your recipes and ingredients securely using your Google Drive AppData folder.'**
+  String get cloud_sync_desc;
+
+  /// No description provided for @cloud_sync_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to Google Drive'**
+  String get cloud_sync_connected;
+
+  /// No description provided for @cloud_sync_disconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
+  String get cloud_sync_disconnected;
+
+  /// No description provided for @cloud_sync_connect_btn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get cloud_sync_connect_btn;
+
+  /// No description provided for @cloud_sync_disconnect_btn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get cloud_sync_disconnect_btn;
+
+  /// No description provided for @cloud_sync_backup_btn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back Up Now'**
+  String get cloud_sync_backup_btn;
+
+  /// No description provided for @cloud_sync_backups_header.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups History'**
+  String get cloud_sync_backups_header;
+
+  /// No description provided for @cloud_sync_no_backups.
+  ///
+  /// In en, this message translates to:
+  /// **'No backups found.'**
+  String get cloud_sync_no_backups;
+
+  /// No description provided for @cloud_sync_backup_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Backup'**
+  String get cloud_sync_backup_confirm_title;
+
+  /// No description provided for @cloud_sync_backup_confirm_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'This will upload a copy of your current database to Google Drive.'**
+  String get cloud_sync_backup_confirm_desc;
+
+  /// No description provided for @cloud_sync_restore_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Backup'**
+  String get cloud_sync_restore_confirm_title;
+
+  /// No description provided for @cloud_sync_restore_confirm_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'This will overwrite all current recipes, steps, and ingredients with the selected backup. This action cannot be undone.'**
+  String get cloud_sync_restore_confirm_desc;
+
+  /// No description provided for @cloud_sync_delete_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Backup'**
+  String get cloud_sync_delete_confirm_title;
+
+  /// No description provided for @cloud_sync_delete_confirm_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete this backup from Google Drive?'**
+  String get cloud_sync_delete_confirm_desc;
+
+  /// No description provided for @cloud_sync_sandbox_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Backup'**
+  String get cloud_sync_sandbox_badge;
+
+  /// No description provided for @cloud_sync_sandbox_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is backed up to a local directory on your device.'**
+  String get cloud_sync_sandbox_desc;
 }
 
 class _AppLocalizationsDelegate
