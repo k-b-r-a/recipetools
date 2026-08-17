@@ -62,13 +62,18 @@ Widget buildFloatingPillAppBar({
                         ),
                       ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16 + (4 * percentage.clamp(0, 1)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.center,
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16 + (4 * percentage.clamp(0, 1)),
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
