@@ -1017,8 +1017,36 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                             ),
                             const SizedBox(height: 16),
                           ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildSectionHeader(l10n.recipe_description),
+                              IconButton(
+                                icon: Icon(
+                                  _isDescriptionExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                onPressed: () => setState(() {
+                                  _isDescriptionExpanded =
+                                      !_isDescriptionExpanded;
+                                }),
+                              ),
+                            ],
+                          ),
+                          if (_isDescriptionExpanded) ...[
+                            _buildCustomTextField(
+                              controller: _descriptionController,
+                              label: '',
+                              hint: l10n.recipe_description_hint,
+                              maxLines: 3,
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           if (widget.recipeId != null &&
                               !widget.isTemporary) ...[
+                            const SizedBox(height: 8),
                             Align(
                               alignment: Alignment.centerRight,
                               child: Row(
@@ -1117,33 +1145,6 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                          ],
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildSectionHeader(l10n.recipe_description),
-                              IconButton(
-                                icon: Icon(
-                                  _isDescriptionExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                onPressed: () => setState(() {
-                                  _isDescriptionExpanded =
-                                      !_isDescriptionExpanded;
-                                }),
-                              ),
-                            ],
-                          ),
-                          if (_isDescriptionExpanded) ...[
-                            _buildCustomTextField(
-                              controller: _descriptionController,
-                              label: '',
-                              hint: l10n.recipe_description_hint,
-                              maxLines: 3,
-                            ),
-                            const SizedBox(height: 8),
                           ],
                           const SizedBox(height: 24),
                           Row(
