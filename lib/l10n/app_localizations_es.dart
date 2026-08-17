@@ -630,4 +630,30 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get cloud_sync_sandbox_desc =>
       'Las copias se guardan en un directorio local del dispositivo.';
+
+  @override
+  String get timers_title => 'Temporizadores de Cocina';
+
+  @override
+  String get timers_desc =>
+      'Ejecuta múltiples temporizadores de cocina y horneado simultáneamente en segundo plano.';
+
+  @override
+  String get timers_add_title => 'Nuevo Temporizador';
+
+  @override
+  String get timers_timer_name => 'Nombre del Temporizador';
+
+  @override
+  String get timers_duration => 'Duración';
+
+  @override
+  String get timers_no_timers => 'Sin temporizadores activos.';
+
+  @override
+  String get timers_no_timers_desc =>
+      '¡Crea un nuevo temporizador para comenzar a cocinar!';
+
+  @override
+  String get timers_finished => '¡Temporizador Finalizado!';
 }

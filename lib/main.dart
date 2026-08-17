@@ -17,10 +17,13 @@ import 'provider/settings_provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'utils/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final sharedPreferences = await SharedPreferences.getInstance();
+  await NotificationService().initialize();
+
   runApp(
     ProviderScope(
       overrides: [

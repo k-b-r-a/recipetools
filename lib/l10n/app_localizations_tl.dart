@@ -627,4 +627,29 @@ class AppLocalizationsTl extends AppLocalizations {
   @override
   String get cloud_sync_sandbox_desc =>
       'Data is backed up to a local directory on your device.';
+
+  @override
+  String get timers_title => 'Kitchen Timers';
+
+  @override
+  String get timers_desc =>
+      'Run multiple cooking and baking timers simultaneously in the background.';
+
+  @override
+  String get timers_add_title => 'New Timer';
+
+  @override
+  String get timers_timer_name => 'Timer Name';
+
+  @override
+  String get timers_duration => 'Duration';
+
+  @override
+  String get timers_no_timers => 'No active timers.';
+
+  @override
+  String get timers_no_timers_desc => 'Create a new timer to start cooking!';
+
+  @override
+  String get timers_finished => 'Timer Finished!';
 }

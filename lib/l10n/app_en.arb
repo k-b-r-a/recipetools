@@ -238,5 +238,13 @@
   "cloud_sync_delete_confirm_title": "Delete Backup",
   "cloud_sync_delete_confirm_desc": "Are you sure you want to permanently delete this backup from Google Drive?",
   "cloud_sync_sandbox_badge": "Local Backup",
-  "cloud_sync_sandbox_desc": "Data is backed up to a local directory on your device."
+  "cloud_sync_sandbox_desc": "Data is backed up to a local directory on your device.",
+  "timers_title": "Kitchen Timers",
+  "timers_desc": "Run multiple cooking and baking timers simultaneously in the background.",
+  "timers_add_title": "New Timer",
+  "timers_timer_name": "Timer Name",
+  "timers_duration": "Duration",
+  "timers_no_timers": "No active timers.",
+  "timers_no_timers_desc": "Create a new timer to start cooking!",
+  "timers_finished": "Timer Finished!"
 }
