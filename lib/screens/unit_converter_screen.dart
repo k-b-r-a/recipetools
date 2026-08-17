@@ -87,9 +87,12 @@ class _UnitConverterScreenState extends ConsumerState<UnitConverterScreen> {
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: const BackButton(),
-        title: Text(
-          l10n.unit_converter_title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            l10n.unit_converter_title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         centerTitle: true,
       ),

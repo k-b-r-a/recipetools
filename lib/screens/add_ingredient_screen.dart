@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:uuid/uuid.dart';
 import '../database/database.dart';
 import '../provider/database_provider.dart';
 import '../l10n/app_localizations.dart';
@@ -110,12 +111,24 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
 
   /// navigates to comparison screen for merging
   void _compareAndMerge(Ingredient other) {
-    if (widget.ingredient == null) return;
+    final l10n = AppLocalizations.of(context)!;
+    final ing1 = widget.ingredient ??
+        Ingredient(
+          ingredientPk: const Uuid().v4(),
+          name: _nameController.text.trim().isNotEmpty
+              ? _nameController.text.trim()
+              : l10n.new_ingredient_button,
+          cost: double.tryParse(_costController.text) ?? 0.0,
+          quantityForCost: double.tryParse(_quantityController.text) ?? 1.0,
+          unitFk: _selectedUnitPk ?? '',
+          dateCreated: DateTime.now(),
+        );
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => CompareIngredientsScreen(
-          ingredient1: widget.ingredient!,
+          ingredient1: ing1,
           ingredient2: other,
         ),
       ),
@@ -131,10 +144,14 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.ingredient == null
-              ? l10n.add_ingredient_title
-              : l10n.edit_ingredient_title,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            widget.ingredient == null
+                ? l10n.add_ingredient_title
+                : l10n.edit_ingredient_title,
+          ),
         ),
         actions: [
           if (!_isLoading)
@@ -276,41 +293,37 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                                         '', // symbol empty for related list now
                                       ),
                                     ),
-                                    trailing: widget.ingredient != null
-                                        ? OutlinedButton.icon(
-                                            onPressed: () =>
-                                                _compareAndMerge(item),
-                                            style: OutlinedButton.styleFrom(
-                                              side: BorderSide(
-                                                color: theme
-                                                    .colorScheme
-                                                    .outlineVariant
-                                                    .withValues(alpha: 0.5),
-                                              ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 0,
-                                                  ),
-                                              minimumSize: const Size(0, 36),
-                                            ),
-                                            icon: const Icon(
-                                              Icons.compare_arrows,
-                                              size: 18,
-                                            ),
-                                            label: Text(
-                                              l10n.compare_button,
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          )
-                                        : null,
+                                    trailing: OutlinedButton.icon(
+                                      onPressed: () => _compareAndMerge(item),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                          color: theme
+                                              .colorScheme
+                                              .outlineVariant
+                                              .withValues(alpha: 0.5),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 0,
+                                        ),
+                                        minimumSize: const Size(0, 36),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.compare_arrows,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        l10n.compare_button,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
                                     onTap: () {
                                       // detail view could be here
                                     },

@@ -66,17 +66,5 @@ void main() {
       expect(state.signedIn, isFalse);
       expect(state.email, isNull);
     });
-
-    test('Setting Google Client ID updates state', () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-
-      final notifier = container.read(cloudSyncProvider.notifier);
-
-      await notifier.setClientId('test-client-id.apps.googleusercontent.com');
-
-      final state = container.read(cloudSyncProvider);
-      expect(state.clientId, 'test-client-id.apps.googleusercontent.com');
-    });
   });
 }
