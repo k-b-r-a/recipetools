@@ -34,6 +34,7 @@ class AppDatabase extends _$AppDatabase {
   // --- Unit Queries ---
   Future<List<Unit>> getAllUnits() => select(units).get();
   Future<int> insertUnit(UnitsCompanion unit) => into(units).insert(unit);
+  Future<bool> updateUnit(Unit unit) => update(units).replace(unit);
 
   // --- Recipe Queries ---
   Future<List<Recipe>> getAllRecipes() =>
