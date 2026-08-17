@@ -35,8 +35,9 @@ class BackupFile {
 }
 
 class GoogleDriveSyncService {
+  static const defaultClientId = '942605231744-g6uaakf2kns45evmlgm3s467rkkii7ms.apps.googleusercontent.com';
+  static const defaultServerClientId = '942605231744-c77i5tmm6767i2k0rktbavaklv60foka.apps.googleusercontent.com';
   static const _storageTypeKey = 'google_drive_storage_type';
-  static const _clientIdKey = 'google_drive_client_id';
   static const _simSignInKey = 'google_drive_sim_signed_in';
   static const _simEmailKey = 'google_drive_sim_email';
 
@@ -59,22 +60,6 @@ class GoogleDriveSyncService {
   Future<void> setStorageType(CloudSyncStorageType type) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_storageTypeKey, type.index);
-  }
-
-  /// Gets the custom Client ID.
-  Future<String?> getClientId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_clientIdKey);
-  }
-
-  /// Sets the custom Client ID.
-  Future<void> setClientId(String? clientId) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (clientId == null || clientId.trim().isEmpty) {
-      await prefs.remove(_clientIdKey);
-    } else {
-      await prefs.setString(_clientIdKey, clientId.trim());
-    }
   }
 
   /// Checks if the user is currently signed in/connected.
@@ -106,10 +91,15 @@ class GoogleDriveSyncService {
       await prefs.setString(_simEmailKey, 'sandbox.user@gmail.com');
       return null;
     }
-    final clientId = await getClientId();
-    
+
+    // Ensure previous session is cleared so Google shows the Account Picker dialog
+    try {
+      await GoogleSignIn.instance.signOut();
+    } catch (_) {}
+
     await GoogleSignIn.instance.initialize(
-      clientId: clientId,
+      clientId: defaultClientId,
+      serverClientId: defaultServerClientId,
     );
     
     return await GoogleSignIn.instance.authenticate();
@@ -204,6 +194,12 @@ class GoogleDriveSyncService {
       return backups;
     } catch (e) {
       debugPrint('Error getting Google Drive backups: $e');
+      final errorStr = e.toString();
+      if (errorStr.contains('403') || errorStr.contains('disabled') || errorStr.contains('drive.googleapis.com')) {
+        throw Exception(
+          'Google Drive API is disabled for project 942605231744. Enable it at: https://console.developers.google.com/apis/api/drive.googleapis.com/overview?project=942605231744',
+        );
+      }
       throw Exception('Google Drive error: $e');
     }
   }
@@ -316,16 +312,58 @@ class GoogleDriveSyncService {
     }
   }
 
+  /// Downloads/exports a backup file to a target local directory path.
+  Future<File?> downloadBackupToLocal(String backupId, String fileName, String targetDirPath) async {
+    final isSim = (await getStorageType()) == CloudSyncStorageType.localDirectory;
+    final exportFile = File(p.join(targetDirPath, fileName));
+
+    if (isSim) {
+      final sourceFile = File(backupId);
+      if (!await sourceFile.exists()) return null;
+      await sourceFile.copy(exportFile.path);
+      return exportFile;
+    }
+
+    try {
+      final client = await _getGoogleClient();
+      if (client == null) return null;
+
+      final driveApi = drive.DriveApi(client);
+      final mediaResponse = await driveApi.files.get(
+        backupId,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
+
+      final List<int> fileBytes = [];
+      await for (var data in mediaResponse.stream) {
+        fileBytes.addAll(data);
+      }
+
+      if (fileBytes.isEmpty) return null;
+
+      await exportFile.writeAsBytes(fileBytes);
+      return exportFile;
+    } catch (e) {
+      debugPrint('Error downloading backup: $e');
+      return null;
+    }
+  }
+
   /// Authenticated HTTP client helper for Google API access.
   Future<http.Client?> _getGoogleClient() async {
     final account = _currentUser;
     if (account == null) return null;
 
-    final authHeaders = await account.authorizationClient.authorizationHeaders([
-      drive.DriveApi.driveAppdataScope,
-    ], promptIfNecessary: true);
+    try {
+      final authHeaders = await account.authorizationClient.authorizationHeaders([
+        drive.DriveApi.driveAppdataScope,
+      ], promptIfNecessary: true);
 
-    if (authHeaders == null) return null;
-    return GoogleAuthClient(authHeaders);
+      if (authHeaders == null) return null;
+      return GoogleAuthClient(authHeaders);
+    } catch (e) {
+      debugPrint('Error obtaining Google API authorization headers: $e');
+      return null;
+    }
   }
 }

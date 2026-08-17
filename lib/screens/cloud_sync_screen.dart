@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../provider/cloud_sync_provider.dart';
@@ -16,22 +17,10 @@ class CloudSyncScreen extends ConsumerStatefulWidget {
 
 class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _clientIdController = TextEditingController();
-  bool _showInstructions = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = ref.read(cloudSyncProvider);
-      _clientIdController.text = state.clientId ?? '';
-    });
-  }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _clientIdController.dispose();
     super.dispose();
   }
 
@@ -61,9 +50,6 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
 
     // Listen to changes in success/error messages to show SnackBar notifications
     ref.listen<CloudSyncState>(cloudSyncProvider, (previous, next) {
-      if (next.clientId != previous?.clientId) {
-        _clientIdController.text = next.clientId ?? '';
-      }
       if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -177,116 +163,7 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
                 notifier.setStorageType(newSelection.first);
               },
             ),
-            if (isGoogleDrive) ...[
-              const SizedBox(height: 20),
-              Text(
-                l10n.localeName == 'es' ? 'Client ID de Google (Opcional)' : 'Google Client ID (Optional)',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _clientIdController,
-                      enabled: !state.signedIn,
-                      decoration: InputDecoration(
-                        hintText: 'e.g. XXXXXX.apps.googleusercontent.com',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        helperText: l10n.localeName == 'es'
-                            ? 'Déjalo vacío para usar la configuración nativa'
-                            : 'Leave empty to use native configuration',
-                      ),
-                      onChanged: (val) {
-                        notifier.setClientId(val);
-                      },
-                    ),
-                  ),
-                  if (!state.signedIn && _clientIdController.text.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _clientIdController.clear();
-                        notifier.setClientId(null);
-                      },
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    _showInstructions = !_showInstructions;
-                  });
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _showInstructions ? Icons.expand_less : Icons.expand_more,
-                        color: theme.colorScheme.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.localeName == 'es' ? '¿Cómo obtener un Client ID de Google?' : 'How to get a Google Client ID?',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (_showInstructions) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    l10n.localeName == 'es'
-                        ? 'Pasos de configuración de OAuth2 para Google Drive:\n\n'
-                            '1. Ve a Google Cloud Console (console.cloud.google.com).\n'
-                            '2. Crea un proyecto y habilita la "Google Drive API".\n'
-                            '3. Configura la Pantalla de Consentimiento OAuth:\n'
-                            '   • Añade el alcance "https://www.googleapis.com/auth/drive.appdata".\n'
-                            '   • En estado "Testing", añade tu correo a la lista de "Test Users". De lo contrario, fallará la conexión.\n'
-                            '4. Ve a "Credenciales" -> "Crear credenciales" -> "ID de cliente de OAuth".\n'
-                            '5. Elige el tipo según tu plataforma (ej. Aplicación web para pruebas, o Android/iOS para móvil).\n'
-                            '6. Copia el ID de cliente, pégalo aquí y presiona Sign In.'
-                        : 'Google Drive OAuth2 Setup Steps:\n\n'
-                            '1. Go to Google Cloud Console (console.cloud.google.com).\n'
-                            '2. Create a project and enable the "Google Drive API".\n'
-                            '3. Configure the OAuth Consent Screen:\n'
-                            '   • Add the scope "https://www.googleapis.com/auth/drive.appdata".\n'
-                            '   • While in "Testing" mode, add your email to the "Test Users" list. Otherwise, authentication will fail.\n'
-                            '4. Go to "Credentials" -> "Create Credentials" -> "OAuth Client ID".\n'
-                            '5. Select application type based on platform (e.g. Web application for testing, or Android/iOS for mobile).\n'
-                            '6. Copy the Client ID, paste it here, and press Sign In.',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      height: 1.4,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ] else ...[
+            if (!isGoogleDrive) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(14),
@@ -401,17 +278,36 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
                   ),
                 )
               else
-                OutlinedButton.icon(
-                  onPressed: () => notifier.signOut(),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => notifier.signIn(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      icon: const Icon(Icons.switch_account),
+                      label: Text(l10n.localeName == 'es' ? 'Cambiar cuenta' : 'Switch account'),
                     ),
-                  ),
-                  icon: const Icon(Icons.logout),
-                  label: Text(l10n.cloud_sync_disconnect_btn),
+                    OutlinedButton.icon(
+                      onPressed: () => notifier.signOut(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      icon: const Icon(Icons.logout),
+                      label: Text(l10n.cloud_sync_disconnect_btn),
+                    ),
+                  ],
                 ),
             ],
           ],
@@ -624,6 +520,20 @@ class _CloudSyncScreenState extends ConsumerState<CloudSyncScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    IconButton(
+                      icon: Icon(Icons.file_download_outlined, color: theme.colorScheme.secondary),
+                      onPressed: () async {
+                        final selectedDirectory = await FilePicker.platform.getDirectoryPath(
+                          dialogTitle: l10n.localeName == 'es'
+                              ? 'Seleccionar carpeta para guardar la copia'
+                              : 'Select folder to save backup',
+                        );
+                        if (selectedDirectory != null) {
+                          notifier.downloadBackup(backup.id, backup.name, selectedDirectory);
+                        }
+                      },
+                      tooltip: l10n.localeName == 'es' ? 'Guardar copia en...' : 'Save backup to...',
+                    ),
                     IconButton(
                       icon: Icon(Icons.settings_backup_restore, color: theme.colorScheme.primary),
                       onPressed: () => _confirmRestore(context, notifier, backup.id, l10n),

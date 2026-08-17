@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:path/path.dart' as p;
 import '../utils/cloud_sync_service.dart';
 import 'database_provider.dart';
 
@@ -11,7 +12,6 @@ class CloudSyncState {
   final String? errorMessage;
   final String? successMessage;
   final CloudSyncStorageType storageType;
-  final String? clientId;
 
   CloudSyncState({
     this.signedIn = false,
@@ -21,7 +21,6 @@ class CloudSyncState {
     this.errorMessage,
     this.successMessage,
     this.storageType = CloudSyncStorageType.googleDrive,
-    this.clientId,
   });
 
   CloudSyncState copyWith({
@@ -32,7 +31,6 @@ class CloudSyncState {
     String? errorMessage,
     String? successMessage,
     CloudSyncStorageType? storageType,
-    String? clientId,
   }) {
     return CloudSyncState(
       signedIn: signedIn ?? this.signedIn,
@@ -42,18 +40,15 @@ class CloudSyncState {
       errorMessage: errorMessage,
       successMessage: successMessage,
       storageType: storageType ?? this.storageType,
-      clientId: clientId ?? this.clientId,
     );
   }
 }
 
 class CloudSyncNotifier extends Notifier<CloudSyncState> {
-  late final GoogleDriveSyncService _syncService;
+  GoogleDriveSyncService get _syncService => ref.read(googleDriveSyncServiceProvider);
 
   @override
   CloudSyncState build() {
-    _syncService = ref.watch(googleDriveSyncServiceProvider);
-    
     // Check initial connection status asynchronously
     Future.microtask(() => checkStatus());
 
@@ -64,12 +59,12 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
     state = state.copyWith(loading: true);
     try {
       final storageType = await _syncService.getStorageType();
-      final clientId = await _syncService.getClientId();
       
       GoogleSignInAccount? account;
       if (storageType == CloudSyncStorageType.googleDrive) {
         await GoogleSignIn.instance.initialize(
-          clientId: clientId,
+          clientId: GoogleDriveSyncService.defaultClientId,
+          serverClientId: GoogleDriveSyncService.defaultServerClientId,
         );
         account = await GoogleSignIn.instance.attemptLightweightAuthentication();
         ref.read(googleUserProvider.notifier).setUser(account);
@@ -88,7 +83,6 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
         email: email,
         backups: backups,
         storageType: storageType,
-        clientId: clientId,
         loading: false,
       );
     } catch (e) {
@@ -108,17 +102,11 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
     
     state = CloudSyncState(
       storageType: type,
-      clientId: state.clientId,
       signedIn: type == CloudSyncStorageType.localDirectory, // Local Backup mode is always connected
       email: type == CloudSyncStorageType.localDirectory ? 'Local Backup' : null,
       backups: backups,
       loading: false,
     );
-  }
-
-  Future<void> setClientId(String? clientId) async {
-    await _syncService.setClientId(clientId);
-    state = state.copyWith(clientId: clientId);
   }
 
   Future<void> signIn() async {
@@ -170,7 +158,6 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
         : const <BackupFile>[];
     state = CloudSyncState(
       storageType: storageType,
-      clientId: state.clientId,
       backups: list,
     );
   }
@@ -266,6 +253,32 @@ class CloudSyncNotifier extends Notifier<CloudSyncState> {
       state = state.copyWith(
         loading: false,
         errorMessage: 'Delete operation error: $e',
+      );
+      return false;
+    }
+  }
+
+  Future<bool> downloadBackup(String backupId, String fileName, String targetDirPath) async {
+    state = state.copyWith(loading: true);
+    try {
+      final file = await _syncService.downloadBackupToLocal(backupId, fileName, targetDirPath);
+      if (file != null) {
+        state = state.copyWith(
+          loading: false,
+          successMessage: 'Backup saved: ${p.basename(file.path)}',
+        );
+        return true;
+      } else {
+        state = state.copyWith(
+          loading: false,
+          errorMessage: 'Failed to save backup.',
+        );
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(
+        loading: false,
+        errorMessage: 'Save operation error: $e',
       );
       return false;
     }
