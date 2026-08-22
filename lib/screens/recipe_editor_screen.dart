@@ -1122,10 +1122,11 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                           if (widget.recipeId != null &&
                               !widget.isTemporary) ...[
                             const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerRight,
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   if (_recipeTimers.isEmpty)
                                     InkWell(
@@ -1260,45 +1261,6 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                                       ),
                                     ),
                                   const SizedBox(width: 8),
-                                  InkWell(
-                                    onTap: _duplicateCurrentRecipe,
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: theme.colorScheme.secondaryContainer
-                                            .withValues(alpha: 0.3),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: theme.colorScheme.secondary
-                                              .withValues(alpha: 0.2),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.copy_rounded,
-                                            size: 18,
-                                            color: theme.colorScheme.secondary,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            l10n.duplicate_button,
-                                            style: theme.textTheme.labelLarge
-                                                ?.copyWith(
-                                                  color: theme.colorScheme.secondary,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
                                   PopupMenuButton<double>(
                                     tooltip: l10n.scale_recipe_tooltip,
                                     onSelected: _openTemporaryScaledRecipe,
@@ -1344,6 +1306,45 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                                             Icons.arrow_drop_down,
                                             size: 18,
                                             color: theme.colorScheme.primary,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: _duplicateCurrentRecipe,
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.secondaryContainer
+                                            .withValues(alpha: 0.3),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: theme.colorScheme.secondary
+                                              .withValues(alpha: 0.2),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.copy_rounded,
+                                            size: 18,
+                                            color: theme.colorScheme.secondary,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            l10n.duplicate_button,
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: theme.colorScheme.secondary,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
                                         ],
                                       ),
