@@ -5,6 +5,7 @@ import '../widgets/floating_pill_app_bar.dart';
 import '../provider/settings_provider.dart';
 import 'rule_of_three_screen.dart';
 import 'unit_converter_screen.dart';
+import 'kitchen_timers_screen.dart';
 
 class ToolsScreen extends ConsumerStatefulWidget {
   const ToolsScreen({super.key});
@@ -46,6 +47,19 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                 childAspectRatio: 1.0 / settings.fontSizeScale,
               ),
               delegate: SliverChildListDelegate([
+                _buildToolGridCard(
+                  context: context,
+                  title: l10n.timers_title,
+                  subtitle: l10n.timers_desc,
+                  icon: Icons.timer_outlined,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const KitchenTimersScreen(),
+                      ),
+                    );
+                  },
+                ),
                 _buildToolGridCard(
                   context: context,
                   title: l10n.rule_of_three_title,

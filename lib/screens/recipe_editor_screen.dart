@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:uuid/uuid.dart';
 import '../database/database.dart';
 import '../provider/database_provider.dart';
 import '../provider/settings_provider.dart';
+import '../provider/timers_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/recipe_utils.dart';
 import '../utils/ingredient_text_editing_controller.dart';
 import 'add_ingredient_screen.dart';
+import 'kitchen_timers_screen.dart';
 import 'compare_ingredients_screen.dart';
 
 class InitialIngredientInput {
@@ -24,6 +27,26 @@ class InitialStepInput {
   const InitialStepInput({
     required this.instruction,
   });
+}
+
+class RecipeTimerData {
+  final String id;
+  final TextEditingController nameController;
+  int durationSeconds;
+
+  RecipeTimerData({
+    required this.id,
+    required String name,
+    required this.durationSeconds,
+  }) : nameController = TextEditingController(text: name);
+
+  String get formattedDuration {
+    final mins = durationSeconds ~/ 60;
+    final secs = durationSeconds % 60;
+    if (mins > 0 && secs > 0) return '${mins}m ${secs}s';
+    if (mins > 0) return '${mins}m';
+    return '${secs}s';
+  }
 }
 
 class RecipeEditorScreen extends ConsumerStatefulWidget {
@@ -83,9 +106,10 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
   final _totalSaleFocusNode = FocusNode();
   final _yieldFocusNode = FocusNode();
 
-  // ingredients and steps state
+  // ingredients, steps and timers state
   final List<RecipeIngredientData> _ingredients = [];
   final List<RecipeStepData> _steps = [];
+  final List<RecipeTimerData> _recipeTimers = [];
 
   // ui state for calculations
   double _currentRevenue = 0.0;
@@ -333,12 +357,30 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
         _ingredients.add(data);
       }
 
+      final timerRegExp = RegExp(r'\[timer:(.*?)\|(\d+)\]');
       for (var step in detail.steps) {
+        String cleanInstruction = step.instruction;
+        final matches = timerRegExp.allMatches(step.instruction);
+        for (final match in matches) {
+          final timerName = match.group(1) ?? 'Timer';
+          final durationSecs = int.tryParse(match.group(2) ?? '0') ?? 0;
+          if (durationSecs > 0) {
+            _recipeTimers.add(
+              RecipeTimerData(
+                id: const Uuid().v4(),
+                name: timerName,
+                durationSeconds: durationSecs,
+              ),
+            );
+          }
+        }
+        cleanInstruction = cleanInstruction.replaceAll(timerRegExp, '').trim();
+
         _steps.add(
           RecipeStepData(
-            initialInstruction: step.instruction,
+            initialInstruction: cleanInstruction,
             customController: IngredientTextEditingController(
-              text: step.instruction,
+              text: cleanInstruction,
               ingredients: _ingredients.map((e) => e.ingredient).toList(),
               colorScheme: theme.colorScheme,
             ),
@@ -810,6 +852,38 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
       setState(() => _isLoading = true);
       try {
         final db = ref.read(databaseProvider);
+
+        final List<RecipeStepData> stepsToSave = List.from(_steps);
+        if (_recipeTimers.isNotEmpty) {
+          final timerTags = _recipeTimers
+              .map((t) => '[timer:${t.nameController.text.trim().isEmpty ? 'Timer' : t.nameController.text.trim()}|${t.durationSeconds}]')
+              .join(' ');
+          
+          if (stepsToSave.isNotEmpty) {
+            final lastStep = stepsToSave.last;
+            final updatedInstruction = '${lastStep.instructionController.text.trim()} $timerTags'.trim();
+            stepsToSave[stepsToSave.length - 1] = RecipeStepData(
+              initialInstruction: updatedInstruction,
+              customController: IngredientTextEditingController(
+                text: updatedInstruction,
+                ingredients: _ingredients.map((e) => e.ingredient).toList(),
+                colorScheme: Theme.of(context).colorScheme,
+              ),
+            );
+          } else {
+            stepsToSave.add(
+              RecipeStepData(
+                initialInstruction: timerTags,
+                customController: IngredientTextEditingController(
+                  text: timerTags,
+                  ingredients: _ingredients.map((e) => e.ingredient).toList(),
+                  colorScheme: Theme.of(context).colorScheme,
+                ),
+              ),
+            );
+          }
+        }
+
         await RecipeUtils.saveRecipe(
           db: db,
           recipePk: widget.recipeId,
@@ -820,7 +894,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
           profitMarginText: margin,
           priceText: price,
           ingredients: _ingredients,
-          steps: _steps,
+          steps: stepsToSave,
         );
         if (mounted) Navigator.of(context).pop();
       } catch (e) {
@@ -954,10 +1028,11 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
             ),
           ),
           actions: [
-            if (widget.recipeId != null && !widget.isTemporary) ...[
+            if (!widget.isTemporary) ...[
               IconButton(
                 icon: const Icon(Icons.check),
                 onPressed: _isLoading ? null : _saveRecipe,
+                tooltip: l10n.save_button,
               ),
             ],
           ],
@@ -1017,51 +1092,174 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                             ),
                             const SizedBox(height: 16),
                           ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildSectionHeader(l10n.recipe_description),
+                              IconButton(
+                                icon: Icon(
+                                  _isDescriptionExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                onPressed: () => setState(() {
+                                  _isDescriptionExpanded =
+                                      !_isDescriptionExpanded;
+                                }),
+                              ),
+                            ],
+                          ),
+                          if (_isDescriptionExpanded) ...[
+                            _buildCustomTextField(
+                              controller: _descriptionController,
+                              label: '',
+                              hint: l10n.recipe_description_hint,
+                              maxLines: 3,
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           if (widget.recipeId != null &&
                               !widget.isTemporary) ...[
-                            Align(
-                              alignment: Alignment.centerRight,
+                            const SizedBox(height: 8),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  InkWell(
-                                    onTap: _duplicateCurrentRecipe,
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: theme.colorScheme.secondaryContainer
-                                            .withValues(alpha: 0.3),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: theme.colorScheme.secondary
-                                              .withValues(alpha: 0.2),
+                                  if (_recipeTimers.isEmpty)
+                                    InkWell(
+                                      borderRadius: BorderRadius.circular(20),
+                                      onTap: () => _showAddRecipeTimerDialog(theme, l10n),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.secondaryContainer
+                                              .withValues(alpha: 0.3),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: theme.colorScheme.secondary
+                                                .withValues(alpha: 0.2),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.timer_outlined,
+                                              size: 18,
+                                              color: theme.colorScheme.secondary,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              l10n.localeName == 'es' ? '+ Temporizador' : '+ Timer',
+                                              style: theme.textTheme.labelLarge?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: theme.colorScheme.secondary,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.copy_rounded,
-                                            size: 18,
-                                            color: theme.colorScheme.secondary,
+                                    )
+                                  else
+                                    PopupMenuButton<RecipeTimerData>(
+                                      tooltip: l10n.localeName == 'es' ? 'Iniciar temporizador' : 'Start timer',
+                                      onSelected: (timerData) {
+                                        final timerName = timerData.nameController.text.trim().isEmpty
+                                            ? (_nameController.text.isEmpty ? 'Recipe Timer' : _nameController.text)
+                                            : timerData.nameController.text.trim();
+
+                                        ref.read(kitchenTimersProvider.notifier).addTimer(
+                                          timerName,
+                                          timerData.durationSeconds,
+                                        );
+
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              l10n.localeName == 'es'
+                                                  ? 'Temporizador iniciado: $timerName (${timerData.formattedDuration})'
+                                                  : 'Timer started: $timerName (${timerData.formattedDuration})',
+                                            ),
+                                            action: SnackBarAction(
+                                              label: l10n.localeName == 'es' ? 'Ver' : 'View',
+                                              onPressed: () {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) => const KitchenTimersScreen(),
+                                                  ),
+                                                );
+                                              },
+                                            ),
                                           ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            l10n.duplicate_button,
-                                            style: theme.textTheme.labelLarge
-                                                ?.copyWith(
-                                                  color: theme.colorScheme.secondary,
-                                                  fontWeight: FontWeight.bold,
+                                        );
+                                      },
+                                      itemBuilder: (context) => _recipeTimers.map((timerData) {
+                                        return PopupMenuItem<RecipeTimerData>(
+                                          value: timerData,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.play_arrow_rounded,
+                                                color: theme.colorScheme.primary,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  '${timerData.nameController.text} (${timerData.formattedDuration})',
+                                                  style: const TextStyle(fontWeight: FontWeight.bold),
                                                 ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        );
+                                      }).toList(),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.primaryContainer
+                                              .withValues(alpha: 0.3),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: theme.colorScheme.primary
+                                                .withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.timer_outlined,
+                                              size: 18,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              '${l10n.localeName == 'es' ? 'Temporizador' : 'Timer'} (${_recipeTimers.length})',
+                                              style: theme.textTheme.labelLarge?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: theme.colorScheme.primary,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.arrow_drop_down,
+                                              size: 18,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
                                   const SizedBox(width: 8),
                                   PopupMenuButton<double>(
                                     tooltip: l10n.scale_recipe_tooltip,
@@ -1113,37 +1311,49 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: _duplicateCurrentRecipe,
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.secondaryContainer
+                                            .withValues(alpha: 0.3),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: theme.colorScheme.secondary
+                                              .withValues(alpha: 0.2),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.copy_rounded,
+                                            size: 18,
+                                            color: theme.colorScheme.secondary,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            l10n.duplicate_button,
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: theme.colorScheme.secondary,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                             const SizedBox(height: 16),
-                          ],
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildSectionHeader(l10n.recipe_description),
-                              IconButton(
-                                icon: Icon(
-                                  _isDescriptionExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                onPressed: () => setState(() {
-                                  _isDescriptionExpanded =
-                                      !_isDescriptionExpanded;
-                                }),
-                              ),
-                            ],
-                          ),
-                          if (_isDescriptionExpanded) ...[
-                            _buildCustomTextField(
-                              controller: _descriptionController,
-                              label: '',
-                              hint: l10n.recipe_description_hint,
-                              maxLines: 3,
-                            ),
-                            const SizedBox(height: 8),
                           ],
                           const SizedBox(height: 24),
                           Row(
@@ -1218,6 +1428,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                               itemBuilder: (context, index) =>
                                   _buildStepItem(index, theme.colorScheme),
                             ),
+                          _buildRecipeTimersSection(theme, l10n),
                           const SizedBox(height: 48),
                         ],
                       ),
@@ -2429,6 +2640,330 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
   }
 
 
+
+  Widget _buildRecipeTimersSection(ThemeData theme, AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 32),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildSectionHeader(
+              l10n.localeName == 'es' ? 'Temporizadores de la Receta' : 'Recipe Timers',
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.add_alarm_rounded,
+                color: theme.colorScheme.primary,
+              ),
+              onPressed: () => _showAddRecipeTimerDialog(theme, l10n),
+              tooltip: l10n.localeName == 'es' ? 'Agregar temporizador' : 'Add timer',
+            ),
+          ],
+        ),
+        const Divider(height: 1),
+        const SizedBox(height: 16),
+        if (_recipeTimers.isEmpty)
+          _buildEmptyPlaceholder(
+            l10n.localeName == 'es'
+                ? 'No hay temporizadores agregados a esta receta.'
+                : 'No timer presets added to this recipe.',
+            Icons.timer_off_outlined,
+          )
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: _recipeTimers.map((timerData) {
+                  return Container(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth > 500 ? (constraints.maxWidth / 2 - 12) : constraints.maxWidth,
+                    ),
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      elevation: 0,
+                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        side: BorderSide(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  final timerName = timerData.nameController.text.trim().isEmpty
+                                      ? (_nameController.text.isEmpty ? 'Recipe Timer' : _nameController.text)
+                                      : timerData.nameController.text.trim();
+
+                                  ref.read(kitchenTimersProvider.notifier).addTimer(
+                                    timerName,
+                                    timerData.durationSeconds,
+                                  );
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        l10n.localeName == 'es'
+                                            ? 'Temporizador iniciado: $timerName (${timerData.formattedDuration})'
+                                            : 'Timer started: $timerName (${timerData.formattedDuration})',
+                                      ),
+                                      action: SnackBarAction(
+                                        label: l10n.localeName == 'es' ? 'Ver' : 'View',
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => const KitchenTimersScreen(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                                label: Text(
+                                  '${timerData.nameController.text} (${timerData.formattedDuration})',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  backgroundColor: theme.colorScheme.primary,
+                                  foregroundColor: theme.colorScheme.onPrimary,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.edit_outlined, size: 18, color: theme.colorScheme.primary),
+                              onPressed: () => _showAddRecipeTimerDialog(theme, l10n, existingTimer: timerData),
+                              tooltip: l10n.localeName == 'es' ? 'Editar' : 'Edit',
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.close, size: 18, color: theme.colorScheme.onSurfaceVariant),
+                              onPressed: () {
+                                setState(() {
+                                  _recipeTimers.remove(timerData);
+                                });
+                              },
+                              tooltip: l10n.localeName == 'es' ? 'Eliminar' : 'Delete',
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  void _showAddRecipeTimerDialog(
+    ThemeData theme,
+    AppLocalizations l10n, {
+    RecipeTimerData? existingTimer,
+  }) {
+    final timerNameController = TextEditingController(
+      text: existingTimer != null ? existingTimer.nameController.text : '',
+    );
+    int selectedMins = existingTimer != null ? (existingTimer.durationSeconds ~/ 60) : 5;
+    int selectedSecs = existingTimer != null ? (existingTimer.durationSeconds % 60) : 0;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 24.0,
+                  right: 24.0,
+                  top: 24.0,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      existingTimer != null
+                          ? (l10n.localeName == 'es' ? 'Editar Temporizador' : 'Edit Recipe Timer')
+                          : (l10n.localeName == 'es' ? 'Agregar Temporizador' : 'Add Recipe Timer'),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: timerNameController,
+                      decoration: InputDecoration(
+                        labelText: l10n.localeName == 'es' ? 'Nombre del temporizador' : 'Timer label',
+                        hintText: l10n.localeName == 'es' ? 'ej. Hervir Pasta, Hornear' : 'e.g. Boil Noodles, Bake',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        prefixIcon: const Icon(Icons.timer_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.keyboard_arrow_up),
+                              onPressed: () => setModalState(() => selectedMins++),
+                            ),
+                            Container(
+                              width: 60,
+                              height: 44,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                selectedMins.toString().padLeft(2, '0'),
+                                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              onPressed: () => setModalState(() {
+                                if (selectedMins > 0) selectedMins--;
+                              }),
+                            ),
+                            Text('Min', style: theme.textTheme.bodySmall),
+                          ],
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(':', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                        ),
+                        Column(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.keyboard_arrow_up),
+                              onPressed: () => setModalState(() {
+                                if (selectedSecs < 55) selectedSecs += 5;
+                              }),
+                            ),
+                            Container(
+                              width: 60,
+                              height: 44,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                selectedSecs.toString().padLeft(2, '0'),
+                                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              onPressed: () => setModalState(() {
+                                if (selectedSecs >= 5) selectedSecs -= 5;
+                              }),
+                            ),
+                            Text('Seg', style: theme.textTheme.bodySmall),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [1, 3, 5, 8, 10, 15, 20, 30, 45, 60].map((m) {
+                        return ChoiceChip(
+                          label: Text('+$m m'),
+                          selected: selectedMins == m && selectedSecs == 0,
+                          onSelected: (_) {
+                            setModalState(() {
+                              selectedMins = m;
+                              selectedSecs = 0;
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        final totalSecs = (selectedMins * 60) + selectedSecs;
+                        if (totalSecs > 0) {
+                          final timerName = timerNameController.text.trim().isEmpty
+                              ? 'Timer ${selectedMins}m'
+                              : timerNameController.text.trim();
+                          setState(() {
+                            if (existingTimer != null) {
+                              existingTimer.nameController.text = timerName;
+                              existingTimer.durationSeconds = totalSecs;
+                            } else {
+                              _recipeTimers.add(
+                                RecipeTimerData(
+                                  id: const Uuid().v4(),
+                                  name: timerName,
+                                  durationSeconds: totalSecs,
+                                ),
+                              );
+                            }
+                          });
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        existingTimer != null
+                            ? (l10n.localeName == 'es' ? 'Guardar Cambios' : 'Save Changes')
+                            : (l10n.localeName == 'es' ? 'Guardar Temporizador' : 'Add Timer Preset'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _showPickerIngredientOptionsModal(
     BuildContext context,

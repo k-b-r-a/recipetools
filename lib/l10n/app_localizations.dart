@@ -1379,6 +1379,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data is backed up to a local directory on your device.'**
   String get cloud_sync_sandbox_desc;
+
+  /// No description provided for @timers_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen Timers'**
+  String get timers_title;
+
+  /// No description provided for @timers_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Run multiple cooking and baking timers simultaneously in the background.'**
+  String get timers_desc;
+
+  /// No description provided for @timers_add_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New Timer'**
+  String get timers_add_title;
+
+  /// No description provided for @timers_timer_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer Name'**
+  String get timers_timer_name;
+
+  /// No description provided for @timers_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get timers_duration;
+
+  /// No description provided for @timers_no_timers.
+  ///
+  /// In en, this message translates to:
+  /// **'No active timers.'**
+  String get timers_no_timers;
+
+  /// No description provided for @timers_no_timers_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new timer to start cooking!'**
+  String get timers_no_timers_desc;
+
+  /// No description provided for @timers_finished.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer Finished!'**
+  String get timers_finished;
 }
 
 class _AppLocalizationsDelegate

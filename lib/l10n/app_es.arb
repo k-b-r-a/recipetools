@@ -210,5 +210,13 @@
   "cloud_sync_delete_confirm_title": "Eliminar Copia de Seguridad",
   "cloud_sync_delete_confirm_desc": "¿Estás seguro de que deseas eliminar permanentemente esta copia de seguridad de Google Drive?",
   "cloud_sync_sandbox_badge": "Copia Local",
-  "cloud_sync_sandbox_desc": "Las copias se guardan en un directorio local del dispositivo."
+  "cloud_sync_sandbox_desc": "Las copias se guardan en un directorio local del dispositivo.",
+  "timers_title": "Temporizadores de Cocina",
+  "timers_desc": "Ejecuta múltiples temporizadores de cocina y horneado simultáneamente en segundo plano.",
+  "timers_add_title": "Nuevo Temporizador",
+  "timers_timer_name": "Nombre del Temporizador",
+  "timers_duration": "Duración",
+  "timers_no_timers": "Sin temporizadores activos.",
+  "timers_no_timers_desc": "¡Crea un nuevo temporizador para comenzar a cocinar!",
+  "timers_finished": "¡Temporizador Finalizado!"
 }
