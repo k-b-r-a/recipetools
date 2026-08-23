@@ -812,49 +812,56 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                                           ),
                                           const SizedBox(height: 12),
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                             children: [
-                                              _buildMenuButton(
-                                                context: context,
-                                                icon: Icons.edit_outlined,
-                                                label: l10n.edit_button,
-                                                onTap: () {
-                                                  Navigator.of(context).push(
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          RecipeEditorScreen(recipeId: recipe.recipePk),
-                                                    ),
-                                                  ).then((_) {
-                                                    setState(() {
-                                                      _expandedRecipeId = null;
+                                              Expanded(
+                                                child: _buildMenuButton(
+                                                  context: context,
+                                                  icon: Icons.edit_outlined,
+                                                  label: l10n.edit_button,
+                                                  onTap: () {
+                                                    Navigator.of(context).push(
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            RecipeEditorScreen(recipeId: recipe.recipePk),
+                                                      ),
+                                                    ).then((_) {
+                                                      setState(() {
+                                                        _expandedRecipeId = null;
+                                                      });
                                                     });
-                                                  });
-                                                },
+                                                  },
+                                                ),
                                               ),
-                                              _buildMenuButton(
-                                                context: context,
-                                                icon: Icons.scale_outlined,
-                                                label: l10n.scale_button,
-                                                onTap: () {
-                                                  _showScalePickerFromList(context, recipe);
-                                                },
+                                              Expanded(
+                                                child: _buildMenuButton(
+                                                  context: context,
+                                                  icon: Icons.scale_outlined,
+                                                  label: l10n.scale_button,
+                                                  onTap: () {
+                                                    _showScalePickerFromList(context, recipe);
+                                                  },
+                                                ),
                                               ),
-                                              _buildMenuButton(
-                                                context: context,
-                                                icon: Icons.copy_rounded,
-                                                label: l10n.duplicate_button,
-                                                onTap: () {
-                                                  _duplicateRecipeFromList(context, recipe);
-                                                },
+                                              Expanded(
+                                                child: _buildMenuButton(
+                                                  context: context,
+                                                  icon: Icons.copy_rounded,
+                                                  label: l10n.duplicate_button,
+                                                  onTap: () {
+                                                    _duplicateRecipeFromList(context, recipe);
+                                                  },
+                                                ),
                                               ),
-                                              _buildMenuButton(
-                                                context: context,
-                                                icon: Icons.delete_outline_rounded,
-                                                label: l10n.delete_button,
-                                                color: theme.colorScheme.error,
-                                                onTap: () {
-                                                  _deleteRecipeFromList(context, recipe);
-                                                },
+                                              Expanded(
+                                                child: _buildMenuButton(
+                                                  context: context,
+                                                  icon: Icons.delete_outline_rounded,
+                                                  label: l10n.delete_button,
+                                                  color: theme.colorScheme.error,
+                                                  onTap: () {
+                                                    _deleteRecipeFromList(context, recipe);
+                                                  },
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -966,9 +973,10 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
@@ -976,12 +984,16 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               size: 22,
             ),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: buttonColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 11,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: buttonColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+                maxLines: 1,
               ),
             ),
           ],

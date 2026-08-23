@@ -31,6 +31,7 @@
   "step_instruction": "Instrucción",
   "step_instruction_hint": "Describe el paso...",
   "save_button": "Guardar",
+  "add_button": "Agregar",
   "edit_button": "Editar",
   "delete_button": "Eliminar",
   "duplicate_button": "Duplicar",

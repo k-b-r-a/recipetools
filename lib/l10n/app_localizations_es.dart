@@ -102,7 +102,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get save_button => 'Guardar';
 
   @override
-  String get add_button => 'Add';
+  String get add_button => 'Agregar';
 
   @override
   String get edit_button => 'Editar';
