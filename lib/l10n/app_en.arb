@@ -246,5 +246,10 @@
   "timers_duration": "Duration",
   "timers_no_timers": "No active timers.",
   "timers_no_timers_desc": "Create a new timer to start cooking!",
-  "timers_finished": "Timer Finished!"
+  "timers_finished": "Timer Finished!",
+  "filter_all": "All",
+  "filter_solids": "Dry",
+  "filter_liquids": "Liquids",
+  "filter_pieces": "Pieces",
+  "filter_tooltip": "Filter ingredients"
 }

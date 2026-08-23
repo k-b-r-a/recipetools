@@ -2243,6 +2243,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
     final theme = Theme.of(context);
 
     final Map<String, (Ingredient, TextEditingController)> selectedInModal = {};
+    IngredientFilterType modalFilter = IngredientFilterType.all;
 
     showModalBottomSheet(
       context: context,
@@ -2350,7 +2351,176 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    FilterChip(
+                      avatar: Icon(
+                        Icons.all_inclusive_rounded,
+                        size: 16,
+                        color: modalFilter == IngredientFilterType.all
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      label: Text(
+                        l10n.filter_all,
+                        style: TextStyle(
+                          fontWeight: modalFilter == IngredientFilterType.all
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: modalFilter == IngredientFilterType.all
+                              ? theme.colorScheme.onPrimaryContainer
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      selected: modalFilter == IngredientFilterType.all,
+                      onSelected: (_) {
+                        setModalState(() {
+                          modalFilter = IngredientFilterType.all;
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: theme.colorScheme.primaryContainer,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.35),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: modalFilter == IngredientFilterType.all
+                              ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                              : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      avatar: Icon(
+                        Icons.grain_rounded,
+                        size: 16,
+                        color: modalFilter == IngredientFilterType.solids
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      label: Text(
+                        l10n.filter_solids,
+                        style: TextStyle(
+                          fontWeight: modalFilter == IngredientFilterType.solids
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: modalFilter == IngredientFilterType.solids
+                              ? theme.colorScheme.onPrimaryContainer
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      selected: modalFilter == IngredientFilterType.solids,
+                      onSelected: (_) {
+                        setModalState(() {
+                          modalFilter = IngredientFilterType.solids;
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: theme.colorScheme.primaryContainer,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.35),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: modalFilter == IngredientFilterType.solids
+                              ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                              : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      avatar: Icon(
+                        Icons.water_drop_outlined,
+                        size: 16,
+                        color: modalFilter == IngredientFilterType.liquids
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      label: Text(
+                        l10n.filter_liquids,
+                        style: TextStyle(
+                          fontWeight: modalFilter == IngredientFilterType.liquids
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: modalFilter == IngredientFilterType.liquids
+                              ? theme.colorScheme.onPrimaryContainer
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      selected: modalFilter == IngredientFilterType.liquids,
+                      onSelected: (_) {
+                        setModalState(() {
+                          modalFilter = IngredientFilterType.liquids;
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: theme.colorScheme.primaryContainer,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.35),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: modalFilter == IngredientFilterType.liquids
+                              ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                              : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      avatar: Icon(
+                        Icons.widgets_outlined,
+                        size: 16,
+                        color: modalFilter == IngredientFilterType.pieces
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      label: Text(
+                        l10n.filter_pieces,
+                        style: TextStyle(
+                          fontWeight: modalFilter == IngredientFilterType.pieces
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: modalFilter == IngredientFilterType.pieces
+                              ? theme.colorScheme.onPrimaryContainer
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      selected: modalFilter == IngredientFilterType.pieces,
+                      onSelected: (_) {
+                        setModalState(() {
+                          modalFilter = IngredientFilterType.pieces;
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: theme.colorScheme.primaryContainer,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.35),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: modalFilter == IngredientFilterType.pieces
+                              ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                              : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
               Expanded(
                 child: Consumer(
                   builder: (context, ref, _) {
@@ -2362,13 +2532,57 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
 
                     return ingredientsAsync.when(
                       data: (ingredients) {
-                        if (ingredients.isEmpty) {
-                          return Center(child: Text(l10n.no_ingredients));
-                        }
-                        return ListView.builder(
-                          itemCount: ingredients.length,
-                          itemBuilder: (context, index) {
-                            final ing = ingredients[index];
+                        return unitsAsync.when(
+                          data: (units) {
+                            final unitMap = {for (var u in units) u.unitPk: u};
+                            final displayedIngredients = ingredients.where((ing) {
+                              if (modalFilter == IngredientFilterType.all) return true;
+                              final unit = unitMap[ing.unitFk];
+                              if (unit == null) return false;
+                              if (modalFilter == IngredientFilterType.solids) {
+                                return unit.category == 'mass';
+                              } else if (modalFilter == IngredientFilterType.liquids) {
+                                return unit.category == 'volume';
+                              } else if (modalFilter == IngredientFilterType.pieces) {
+                                return unit.category == 'count';
+                              }
+                              return true;
+                            }).toList();
+
+                            if (displayedIngredients.isEmpty) {
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      modalFilter == IngredientFilterType.liquids
+                                          ? Icons.water_drop_outlined
+                                          : modalFilter == IngredientFilterType.solids
+                                              ? Icons.grain_rounded
+                                              : modalFilter == IngredientFilterType.pieces
+                                                  ? Icons.widgets_outlined
+                                                  : Icons.inventory_2_outlined,
+                                      size: 54,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      query.isEmpty &&
+                                              modalFilter == IngredientFilterType.all
+                                          ? l10n.no_ingredients
+                                          : l10n.no_ingredients_found,
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                            return ListView.builder(
+                              itemCount: displayedIngredients.length,
+                              itemBuilder: (context, index) {
+                                final ing = displayedIngredients[index];
                             final isAlreadyInRecipe = _ingredients.any(
                               (i) =>
                                   i.ingredient.ingredientPk == ing.ingredientPk,
@@ -2544,8 +2758,13 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                       error: (e, _) => Center(child: Text(e.toString())),
                     );
                   },
-                ),
-              ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Center(child: Text(e.toString())),
+                );
+              },
+            ),
+          ),
               if (selectedInModal.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),

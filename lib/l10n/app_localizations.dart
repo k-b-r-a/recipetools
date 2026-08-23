@@ -1427,6 +1427,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Timer Finished!'**
   String get timers_finished;
+
+  /// No description provided for @filter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filter_all;
+
+  /// No description provided for @filter_solids.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry'**
+  String get filter_solids;
+
+  /// No description provided for @filter_liquids.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquids'**
+  String get filter_liquids;
+
+  /// No description provided for @filter_pieces.
+  ///
+  /// In en, this message translates to:
+  /// **'Pieces'**
+  String get filter_pieces;
+
+  /// No description provided for @filter_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter ingredients'**
+  String get filter_tooltip;
 }
 
 class _AppLocalizationsDelegate

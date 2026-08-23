@@ -219,5 +219,10 @@
   "timers_duration": "Duración",
   "timers_no_timers": "Sin temporizadores activos.",
   "timers_no_timers_desc": "¡Crea un nuevo temporizador para comenzar a cocinar!",
-  "timers_finished": "¡Temporizador Finalizado!"
+  "timers_finished": "¡Temporizador Finalizado!",
+  "filter_all": "Todos",
+  "filter_solids": "Secos",
+  "filter_liquids": "Líquidos",
+  "filter_pieces": "Piezas",
+  "filter_tooltip": "Filtrar ingredientes"
 }

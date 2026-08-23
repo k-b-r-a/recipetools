@@ -656,4 +656,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get timers_finished => '¡Temporizador Finalizado!';
+
+  @override
+  String get filter_all => 'Todos';
+
+  @override
+  String get filter_solids => 'Secos';
+
+  @override
+  String get filter_liquids => 'Líquidos';
+
+  @override
+  String get filter_pieces => 'Piezas';
+
+  @override
+  String get filter_tooltip => 'Filtrar ingredientes';
 }
