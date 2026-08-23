@@ -33,6 +33,7 @@ class AppDatabase extends _$AppDatabase {
 
   // --- Unit Queries ---
   Future<List<Unit>> getAllUnits() => select(units).get();
+  Stream<List<Unit>> watchAllUnits() => select(units).watch();
   Future<int> insertUnit(UnitsCompanion unit) => into(units).insert(unit);
   Future<bool> updateUnit(Unit unit) => update(units).replace(unit);
 

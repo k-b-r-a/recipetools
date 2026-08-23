@@ -652,4 +652,19 @@ class AppLocalizationsAf extends AppLocalizations {
 
   @override
   String get timers_finished => 'Timer Finished!';
+
+  @override
+  String get filter_all => 'All';
+
+  @override
+  String get filter_solids => 'Dry';
+
+  @override
+  String get filter_liquids => 'Liquids';
+
+  @override
+  String get filter_pieces => 'Pieces';
+
+  @override
+  String get filter_tooltip => 'Filter ingredients';
 }

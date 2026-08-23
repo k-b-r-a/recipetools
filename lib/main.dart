@@ -204,9 +204,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
-    final double baseHeight = settings.showNavBarLabels ? 70.0 : 56.0;
-    final double navBarHeight =
-        baseHeight * (settings.fontSizeScale > 1.0 ? settings.fontSizeScale : 1.0);
 
     return Scaffold(
       extendBody: true,
@@ -226,21 +223,41 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           ? FloatingActionButtonLocation.startFloat
           : FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _buildFab(context, settings),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      bottomNavigationBar: _buildFloatingNavBar(context, settings, l10n, theme),
+    );
+  }
+
+  Widget _buildFloatingNavBar(
+    BuildContext context,
+    SettingsState settings,
+    AppLocalizations l10n,
+    ThemeData theme,
+  ) {
+    final items = [
+      (0, l10n.recipes_title),
+      (1, l10n.ingredients_title),
+      (2, l10n.tools_title),
+      (3, l10n.config_button),
+    ];
+
+    final double pillHeight = settings.showNavBarLabels ? 54.0 : 44.0;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        child: SizedBox(
+          height: pillHeight,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(15),
+                  color: theme.colorScheme.surface.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: theme.colorScheme.outlineVariant.withValues(
-                      alpha: 0.4,
-                    ),
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
                     width: 1,
                   ),
                   boxShadow: [
@@ -251,65 +268,125 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                     ),
                   ],
                 ),
-                child: NavigationBarTheme(
-                  data: NavigationBarThemeData(
-                    indicatorShape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    height: navBarHeight,
-                    labelTextStyle: WidgetStateProperty.all(
-                      const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(
+                    settings.fontSizeScale.clamp(0.85, 1.05),
                   ),
-                  child: NavigationBar(
-                    height: navBarHeight,
-                    elevation: 0,
-                    backgroundColor: Colors.transparent,
-                    selectedIndex: _currentIndex,
-                    labelBehavior: settings.showNavBarLabels
-                        ? NavigationDestinationLabelBehavior.alwaysShow
-                        : NavigationDestinationLabelBehavior.alwaysHide,
-                    onDestinationSelected: (index) {
-                      _pageController.animateToPage(
-                        index,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    destinations: [
-                      NavigationDestination(
-                        icon: Icon(getNavBarIcon(0, false, settings.iconStyle), size: 22),
-                        selectedIcon: Icon(getNavBarIcon(0, true, settings.iconStyle), size: 22),
-                        label: l10n.recipes_title,
-                      ),
-                      NavigationDestination(
-                        icon: Icon(getNavBarIcon(1, false, settings.iconStyle), size: 22),
-                        selectedIcon: Icon(getNavBarIcon(1, true, settings.iconStyle), size: 22),
-                        label: l10n.ingredients_title,
-                      ),
-                      NavigationDestination(
-                        icon: Icon(getNavBarIcon(2, false, settings.iconStyle), size: 22),
-                        selectedIcon: Icon(getNavBarIcon(2, true, settings.iconStyle), size: 22),
-                        label: l10n.tools_title,
-                      ),
-                      NavigationDestination(
-                        icon: Icon(getNavBarIcon(3, false, settings.iconStyle), size: 22),
-                        selectedIcon: Icon(getNavBarIcon(3, true, settings.iconStyle), size: 22),
-                        label: l10n.config_button,
-                      ),
-                    ],
-                  ),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemWidth = constraints.maxWidth / items.length;
+                    return Stack(
+                      alignment: Alignment.centerLeft,
+                      children: [
+                        // Smooth sliding indicator pill
+                        AnimatedAlign(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOutCubic,
+                          alignment: Alignment(
+                            -1.0 + (_currentIndex * (2.0 / (items.length - 1))),
+                            0,
+                          ),
+                          child: Container(
+                            width: itemWidth - 6,
+                            height: settings.showNavBarLabels ? 42 : 36,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        // Navigation item buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: items.map((item) {
+                            final index = item.$1;
+                            final label = item.$2;
+                            final isSelected = _currentIndex == index;
+                            final icon = getNavBarIcon(index, isSelected, settings.iconStyle);
+
+                            return Expanded(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    if (_currentIndex != index) {
+                                      setState(() {
+                                        _currentIndex = index;
+                                        _isSearching = false;
+                                        _showSearchContent = false;
+                                        ref.read(searchQueryProvider.notifier).setQuery('');
+                                      });
+                                      _pageController.animateToPage(
+                                        index,
+                                        duration: const Duration(milliseconds: 300),
+                                        curve: Curves.easeInOut,
+                                      );
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: settings.showNavBarLabels ? 4 : 7,
+                                      horizontal: 2,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        AnimatedScale(
+                                          scale: isSelected ? 1.08 : 1.0,
+                                          duration: const Duration(milliseconds: 200),
+                                          curve: Curves.easeOut,
+                                          child: Icon(
+                                            icon,
+                                            size: 20,
+                                            color: isSelected
+                                                ? theme.colorScheme.onPrimaryContainer
+                                                : theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        if (settings.showNavBarLabels) ...[
+                                          const SizedBox(height: 2),
+                                          AnimatedDefaultTextStyle(
+                                            duration: const Duration(milliseconds: 200),
+                                            style: TextStyle(
+                                              fontSize: 10.5,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                              letterSpacing: -0.3,
+                                              color: isSelected
+                                                  ? theme.colorScheme.onPrimaryContainer
+                                                  : theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.center,
+                                            child: Text(label),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget? _buildFab(BuildContext context, SettingsState settings) {
     final theme = Theme.of(context);

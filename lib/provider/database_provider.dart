@@ -49,6 +49,34 @@ final unitsProvider = FutureProvider<List<Unit>>((ref) {
   return db.getAllUnits();
 });
 
+/// Provides a reactive stream of all available units.
+final unitsStreamProvider = StreamProvider<List<Unit>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.watchAllUnits();
+});
+
+/// Filter type for ingredients (all, solids, liquids, pieces).
+enum IngredientFilterType {
+  all,
+  solids,
+  liquids,
+  pieces,
+}
+
+/// Notifier for the ingredient filter type.
+class IngredientFilterNotifier extends Notifier<IngredientFilterType> {
+  @override
+  IngredientFilterType build() => IngredientFilterType.all;
+
+  void setFilter(IngredientFilterType filter) => state = filter;
+}
+
+/// State provider for filtering ingredients.
+final ingredientFilterProvider =
+    NotifierProvider<IngredientFilterNotifier, IngredientFilterType>(
+  IngredientFilterNotifier.new,
+);
+
 /// Provides a stream of ingredients that match a search query.
 final relatedIngredientsProvider =
     StreamProvider.family<List<Ingredient>, String>((ref, query) {
@@ -66,3 +94,4 @@ class SearchQueryNotifier extends Notifier<String> {
 
 /// State provider for the global search query using Notifier.
 final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
+
