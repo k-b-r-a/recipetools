@@ -120,7 +120,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                             ingredient.name,
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
-                          subtitle: Text(
+                          subtitle: CurrencyText(
                             l10n.ingredient_price_per_quantity(
                               '${settings.currencySymbol}${RecipeUtils.formatNumber(ingredient.cost)}',
                               RecipeUtils.formatNumber(
@@ -128,6 +128,7 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                               ),
                               unitSymbol,
                             ),
+                            currencySymbol: settings.currencySymbol,
                           ),
                           leading: CircleAvatar(
                             backgroundColor: isLiquid
@@ -156,6 +157,14 @@ class _IngredientsScreenState extends ConsumerState<IngredientsScreen> {
                             ),
                           ),
                           onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    AddIngredientScreen(ingredient: ingredient),
+                              ),
+                            );
+                          },
+                          onLongPress: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) =>

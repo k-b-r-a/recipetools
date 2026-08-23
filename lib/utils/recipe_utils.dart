@@ -88,11 +88,9 @@ class RecipeUtils {
   static String formatNumber(num value, {int? decimalDigits}) {
     final digits = decimalDigits ?? defaultDecimalDigits;
     final formatter = NumberFormat.decimalPattern('es_ES'); // uses dot for thousands
-    if (digits > 0) {
-      formatter.minimumFractionDigits = digits;
-      formatter.maximumFractionDigits = digits;
-    }
-    return formatter.format(value);
+    formatter.minimumFractionDigits = digits;
+    formatter.maximumFractionDigits = digits;
+    return formatter.format(digits == 0 ? value.round() : value);
   }
 
   /// Parses a number string that might contain thousands separators (dots) and decimal commas
@@ -101,6 +99,41 @@ class RecipeUtils {
     // Remove dots (thousands) and replace comma with dot (decimal)
     String clean = text.replaceAll('.', '').replaceAll(',', '.');
     return double.tryParse(clean) ?? 0.0;
+  }
+
+  /// Formats any string containing a currency symbol with the currency symbol highlighted in the theme's accent/primary color.
+  static TextSpan formatCurrencyTextSpan({
+    required BuildContext context,
+    required String text,
+    required String currencySymbol,
+    TextStyle? style,
+    Color? currencyColor,
+  }) {
+    final theme = Theme.of(context);
+    final accent = currencyColor ?? theme.colorScheme.primary;
+    if (currencySymbol.isEmpty || !text.contains(currencySymbol)) {
+      return TextSpan(text: text, style: style);
+    }
+
+    final parts = text.split(currencySymbol);
+    final spans = <InlineSpan>[];
+    for (int i = 0; i < parts.length; i++) {
+      if (parts[i].isNotEmpty) {
+        spans.add(TextSpan(text: parts[i], style: style));
+      }
+      if (i < parts.length - 1) {
+        spans.add(
+          TextSpan(
+            text: currencySymbol,
+            style: (style ?? const TextStyle()).copyWith(
+              color: accent,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        );
+      }
+    }
+    return TextSpan(children: spans);
   }
 
   /// generates a theme-compliant color based on a string (ingredient name)
@@ -150,7 +183,7 @@ class RecipeUtils {
     final profitPortion = yieldVal > 0 ? totalProfit / yieldVal : 0.0;
     
     // Markup logic: (Profit / Cost) * 100
-    final markup = totalIngredientsCost > 0 
+    final markup = (totalIngredientsCost > 0 && pricePerPortion > 0) 
         ? (totalProfit / totalIngredientsCost) * 100 
         : 0.0;
 
@@ -311,6 +344,44 @@ class RecipeUtils {
       recipeFk: recipePk,
       stepNumber: index + 1,
       instruction: step.instructionController.text.trim(),
+    );
+  }
+}
+
+/// A widget that automatically renders any text with the currency symbol highlighted in accent color.
+class CurrencyText extends StatelessWidget {
+  final String text;
+  final String currencySymbol;
+  final TextStyle? style;
+  final Color? currencyColor;
+  final TextAlign? textAlign;
+  final int? maxLines;
+  final TextOverflow? overflow;
+
+  const CurrencyText(
+    this.text, {
+    super.key,
+    required this.currencySymbol,
+    this.style,
+    this.currencyColor,
+    this.textAlign,
+    this.maxLines,
+    this.overflow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      RecipeUtils.formatCurrencyTextSpan(
+        context: context,
+        text: text,
+        currencySymbol: currencySymbol,
+        style: style,
+        currencyColor: currencyColor,
+      ),
+      textAlign: textAlign,
+      maxLines: maxLines,
+      overflow: overflow,
     );
   }
 }

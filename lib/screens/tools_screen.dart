@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/floating_pill_app_bar.dart';
-import '../provider/settings_provider.dart';
 import 'rule_of_three_screen.dart';
 import 'unit_converter_screen.dart';
 import 'kitchen_timers_screen.dart';
@@ -26,7 +25,6 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final settings = ref.watch(settingsProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -38,55 +36,58 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
             controller: _scrollController,
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 16.0),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.0 / settings.fontSizeScale,
-              ),
-              delegate: SliverChildListDelegate([
-                _buildToolGridCard(
-                  context: context,
-                  title: l10n.timers_title,
-                  subtitle: l10n.timers_desc,
-                  icon: Icons.timer_outlined,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const KitchenTimersScreen(),
-                      ),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            sliver: SliverList.separated(
+              itemCount: 3,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                switch (index) {
+                  case 0:
+                    return _buildToolListCard(
+                      context: context,
+                      title: l10n.timers_title,
+                      subtitle: l10n.timers_desc,
+                      icon: Icons.timer_outlined,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const KitchenTimersScreen(),
+                          ),
+                        );
+                      },
                     );
-                  },
-                ),
-                _buildToolGridCard(
-                  context: context,
-                  title: l10n.rule_of_three_title,
-                  subtitle: l10n.rule_of_three_desc,
-                  icon: Icons.calculate_outlined,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const RuleOfThreeScreen(),
-                      ),
+                  case 1:
+                    return _buildToolListCard(
+                      context: context,
+                      title: l10n.rule_of_three_title,
+                      subtitle: l10n.rule_of_three_desc,
+                      icon: Icons.calculate_outlined,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const RuleOfThreeScreen(),
+                          ),
+                        );
+                      },
                     );
-                  },
-                ),
-                _buildToolGridCard(
-                  context: context,
-                  title: l10n.unit_converter_title,
-                  subtitle: l10n.unit_converter_desc,
-                  icon: Icons.swap_horiz_rounded,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const UnitConverterScreen(),
-                      ),
+                  case 2:
+                    return _buildToolListCard(
+                      context: context,
+                      title: l10n.unit_converter_title,
+                      subtitle: l10n.unit_converter_desc,
+                      icon: Icons.swap_horiz_rounded,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const UnitConverterScreen(),
+                          ),
+                        );
+                      },
                     );
-                  },
-                ),
-              ]),
+                  default:
+                    return const SizedBox.shrink();
+                }
+              },
             ),
           ),
         ],
@@ -94,7 +95,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
     );
   }
 
-  Widget _buildToolGridCard({
+  Widget _buildToolListCard({
     required BuildContext context,
     required String title,
     required String subtitle,
@@ -103,55 +104,79 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
   }) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.15),
-                child: Icon(
-                  icon,
-                  color: theme.colorScheme.primary,
-                  size: 26,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 16.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: theme.colorScheme.primary,
+                    size: 24,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 10.5,
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

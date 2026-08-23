@@ -343,8 +343,9 @@ class _IngredientSimpleCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(
+                    child: CurrencyText(
                       '$currencySymbol${RecipeUtils.formatNumber(ingredient.cost)}',
+                      currencySymbol: currencySymbol,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                         color: theme.colorScheme.onSurface,

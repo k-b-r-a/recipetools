@@ -103,6 +103,8 @@ class AppDatabase extends _$AppDatabase {
   // --- Ingredient Queries ---
   Future<List<Ingredient>> getAllIngredients() =>
       (select(ingredients)..orderBy([(t) => OrderingTerm(expression: t.name)])).get();
+  Future<Ingredient?> getIngredientById(String pk) =>
+      (select(ingredients)..where((t) => t.ingredientPk.equals(pk))).getSingleOrNull();
   Stream<List<Ingredient>> watchAllIngredients() =>
       (select(ingredients)..orderBy([(t) => OrderingTerm(expression: t.name)])).watch();
   Future<int> insertIngredient(IngredientsCompanion ingredient) =>
