@@ -1021,12 +1021,19 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           const SizedBox(height: 4),
           FittedBox(
             fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: effectiveTextColor,
+            child: Text.rich(
+              RecipeUtils.formatCurrencyTextSpan(
+                context: context,
+                text: value,
+                currencySymbol: settings.currencySymbol,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: effectiveTextColor,
+                ),
+                currencyColor: settings.numberColorsEnabled
+                    ? effectiveTextColor
+                    : theme.colorScheme.primary,
               ),
               textAlign: TextAlign.center,
             ),

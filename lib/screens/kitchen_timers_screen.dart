@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
@@ -48,13 +49,47 @@ class _KitchenTimersScreenState extends ConsumerState<KitchenTimersScreen> {
                 context: context,
                 title: l10n.timers_title,
                 controller: _scrollController,
+                trailing: InkWell(
+                  onTap: () => _showAddTimerDialog(context, notifier, l10n),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.35),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.add_rounded,
+                          size: 16,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.add_button,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 16.0),
+                padding: const EdgeInsets.fromLTRB(22.0, 16.0, 22.0, 110.0),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     if (timers.isEmpty)
-                      _buildEmptyState(theme, l10n)
+                      _buildEmptyState(theme, notifier, l10n)
                     else
                       _buildTimersList(timers, notifier, theme, l10n),
                   ]),
@@ -77,50 +112,147 @@ class _KitchenTimersScreenState extends ConsumerState<KitchenTimersScreen> {
     );
   }
 
-
-
-  Widget _buildEmptyState(ThemeData theme, AppLocalizations l10n) {
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      color: theme.colorScheme.surfaceContainerLowest,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+  Widget _buildEmptyState(
+    ThemeData theme,
+    KitchenTimersNotifier notifier,
+    AppLocalizations l10n,
+  ) {
+    return Column(
+      children: [
+        Card(
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          color: theme.colorScheme.surfaceContainerLowest,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 48.0, horizontal: 24.0),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 36,
+                  backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
+                  child: Icon(
+                    Icons.hourglass_empty_rounded,
+                    color: theme.colorScheme.primary,
+                    size: 36,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.timers_no_timers,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.timers_no_timers_desc,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 48.0, horizontal: 24.0),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 36,
-              backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
-              child: Icon(
-                Icons.hourglass_empty_rounded,
-                color: theme.colorScheme.primary,
-                size: 36,
+        const SizedBox(height: 16),
+        _buildAddTimerSquare(theme, notifier, l10n),
+      ],
+    );
+  }
+
+  Widget _buildAddTimerSquare(
+    ThemeData theme,
+    KitchenTimersNotifier notifier,
+    AppLocalizations l10n,
+  ) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _showAddTimerDialog(context, notifier, l10n),
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.add_rounded,
+                      size: 24,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          l10n.timers_add_title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          l10n.timers_no_timers_desc,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.timers_no_timers,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.timers_no_timers_desc,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -135,9 +267,12 @@ class _KitchenTimersScreenState extends ConsumerState<KitchenTimersScreen> {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: timers.length,
+      itemCount: timers.length + 1,
       separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
+        if (index == timers.length) {
+          return _buildAddTimerSquare(theme, notifier, l10n);
+        }
         final timer = timers[index];
         final accentColor = _accentColors[timer.colorIndex % _accentColors.length];
 

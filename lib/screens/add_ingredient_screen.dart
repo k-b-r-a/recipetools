@@ -185,7 +185,11 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                             controller: _costController,
                             decoration: InputDecoration(
                               labelText: l10n.ingredient_cost,
-                              prefixText: settings.currencySymbol,
+                              prefixText: '${settings.currencySymbol} ',
+                              prefixStyle: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
                               border: const OutlineInputBorder(),
                             ),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
